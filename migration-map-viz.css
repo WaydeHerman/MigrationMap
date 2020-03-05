@@ -15,10 +15,11 @@
 
 .feature-line {
   fill: none;
-  opacity: 0.8;
+  cursor: pointer;
 }
 
 .feature-circle {
+  cursor: pointer;
 }
 
 .legend-container {
@@ -33,4 +34,104 @@
   fill: white;
   font-weight: bold;
   text-anchor: middle;
+}
+
+/* Dropdown Button */
+.dropbtn {
+  background-color: #787878;
+  color: white;
+  padding: 5px;
+  font-weight: bold;
+  font-size: 10px;
+  border: none;
+  cursor: pointer;
+  min-width: 120px;
+  text-anchor: middle;
+}
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown-flow {
+  margin: auto;
+  position: relative;
+  top: -40px;
+  left: 20px;
+  display: inline-block;
+  text-anchor: middle;
+  min-width: 150px;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 135px;
+  z-index: 1;
+  max-height: 530px;
+  overflow: auto;
+  text-anchor: middle;
+  top: 0px;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: #404e4d;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 3px 0px;
+  text-decoration: none;
+  display: block;
+  text-anchor: middle;
+  text-align: center;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+/* Show the dropdown menu on hover */
+.dropdown-flow:hover .dropdown-content {
+  display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown-flow:hover .dropbtn {
+  background-color: #132a54;
+}
+
+i {
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 2px;
+  margin-right: 5px;
+}
+
+.down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+.chart-tooltip {
+  position: fixed;
+  z-index: 999;
+  left: 0;
+  top: 0;
+  padding: 0.25em 0.5em;
+  border-width: 2px;
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.chart-tooltip .tooltip-desc,
+.chart-tooltip .tooltip-total,
+.tooltip-percentage {
+  color: #a6a6a6;
+}
+
+.chart-tooltip .tooltip-value {
+  color: #a6a6a6;
 }

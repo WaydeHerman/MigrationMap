@@ -112,7 +112,7 @@ function migrationMap(option) {
       .select("#map")
       .append("div")
       .attr("class", "legend-container")
-      .style("top", document.getElementById("map").clientHeight - 200 + "px")
+      .style("top", document.getElementById("map").clientHeight - 220 + "px")
       .style("left", document.getElementById("map").clientWidth - 240 + "px")
       .append("svg")
       .attr("width", 220)
@@ -122,7 +122,7 @@ function migrationMap(option) {
       .append("text")
       .attr("class", "legend-text")
       .attr("x", 110)
-      .attr("y", 30)
+      .attr("y", 25)
       .text("Population Movement to Autauga");
 
     var legend_examples = [0.1 * maxVal, maxVal / 2, maxVal];
@@ -137,7 +137,7 @@ function migrationMap(option) {
       .attr("stroke-width", "2px")
       .attr("cx", 50)
       .attr("cy", function(d) {
-        return 100 + z(maxVal) - z(d);
+        return 90 + z(maxVal) - z(d);
       })
       .attr("r", function(d) {
         return z(d);
@@ -151,11 +151,40 @@ function migrationMap(option) {
       .attr("class", "legend-text")
       .attr("x", 110)
       .attr("y", function(d) {
-        return 100 + z(maxVal) - 2 * z(d);
+        return 90 + z(maxVal) - 2 * z(d);
       })
       .attr("dy", 5)
       .text(function(d) {
         return formatNumber(d);
+      });
+
+    d3.select(".legend-container")
+      .append("div")
+      .attr("class", "dropdown-flow");
+
+    d3.select(".dropdown-flow")
+      .append("div")
+      .attr("class", "dropdown-content")
+      .attr("id", "flow-selector");
+
+    d3.select(".dropdown-flow")
+      .append("button")
+      .attr("class", "dropbtn")
+      .html("<i class='arrow down'></i> Select Migration Flow");
+
+    var dropdown_list = ["out-flow", "in-flow", "net-flow"];
+
+    var industrySelector = d3
+      .select("#flow-selector")
+      .selectAll("a")
+      .data(dropdown_list)
+      .enter()
+      .append("text")
+      .html(function(d) {
+        return "<a href='#'>" + d + "</a>";
+      })
+      .on("click", function(d) {
+        console.log(d);
       });
 
     /* legendSVG
@@ -182,8 +211,6 @@ function migrationMap(option) {
       .attr("y", 150)
       .text(formatNumber(maxVal)); */
 
-    var lineGenerator = d3.line().curve(d3.curveCardinal);
-
     function reset() {
       var bounds = path.bounds(json),
         topLeft = bounds[0],
@@ -197,8 +224,6 @@ function migrationMap(option) {
 
       g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 
-      console.log(document.getElementById("map").clientWidth);
-
       //feature.attr("d", path).attr("class", "county");
 
       featureCircle
@@ -211,36 +236,43 @@ function migrationMap(option) {
         })
         .attr("r", function(d) {
           return z(d.properties.AtoB);
-        });
+        })
+        .on("mouseover", elementMouseOver)
+        .on("mousemove", moveTooltip)
+        .on("mouseout", elementMouseOut);
 
       featureLine
         .attr("class", "feature-line")
         .style("stroke", lineColor)
         .attr("stroke-width", function(d) {
-          if (d.properties.AtoB > 500) {
-          }
-          return z(d.properties.AtoB);
+          return (d.properties.AtoB * 60) / d3.sum(totals);
         })
+        .style("opacity", 0.8)
         .attr("d", function(d, i) {
-          var x1 = path.centroid(json.features[0])[0];
-          var y1 = path.centroid(json.features[0])[1];
-          var x2 = path.centroid(d)[0];
-          var y2 = path.centroid(d)[1];
-          return (
-            "M" +
-            x2 +
-            "," +
-            y2 +
-            " Q" +
-            (x1 + x2) / 2 +
-            " " +
-            (y1 + y2) / 1.7 +
-            " " +
-            x1 +
-            " " +
-            y1
-          );
-        });
+          if (d.AtoB != 0) {
+            var x1 = path.centroid(json.features[0])[0];
+            var y1 = path.centroid(json.features[0])[1];
+            var x2 = path.centroid(d)[0];
+            var y2 = path.centroid(d)[1];
+            return (
+              "M" +
+              x2 +
+              "," +
+              y2 +
+              " Q" +
+              (x1 + x2) / 2 +
+              " " +
+              (y1 + y2) / 1.7 +
+              " " +
+              x1 +
+              " " +
+              y1
+            );
+          }
+        })
+        .on("mouseover", elementMouseOver)
+        .on("mousemove", moveTooltip)
+        .on("mouseout", elementMouseOut);
 
       /* featureLine
         .style("stroke", lineColor)
@@ -273,6 +305,79 @@ function migrationMap(option) {
       this.stream.point(point.x, point.y);
     }
 
+    // Tooltip
+    const tooltip = d3
+      .select("#map")
+      .append("div")
+      .attr("class", "chart-tooltip");
+    tooltip.append("div").attr("class", "tooltip-desc");
+    tooltip.append("div").attr("class", "tooltip-total");
+    tooltip.append("div").attr("class", "tooltip-percentage");
+
+    function moveTooltip() {
+      let padding = 10;
+      const { width, height } = tooltip.datum();
+      let x = d3.event.clientX;
+      if (x + padding + width > window.innerWidth) {
+        x = x - padding - width;
+      } else {
+        x = x + padding;
+      }
+      let y = d3.event.clientY;
+      if (y + padding + height > window.innerHeight) {
+        y = y - padding - height;
+      } else {
+        y = y + padding;
+      }
+      tooltip.style("transform", `translate(${x}px,${y}px)`);
+    }
+
+    function showTooltip(d) {
+      var tt_desc = "Flow from " + d.properties.name + " to " + "Autauga";
+      var tt_total = formatNumber(+d.properties.AtoB) + " people";
+      var tt_perc =
+        Math.round((+d.properties.AtoB / d3.sum(totals)) * 10000) / 100 +
+        "% total for " +
+        "Autauga";
+      tooltip.select(".tooltip-desc").text(tt_desc);
+      tooltip.select(".tooltip-total").text(tt_total);
+      tooltip.select(".tooltip-percentage").text(tt_perc);
+      tooltip.transition().style("opacity", 1);
+
+      const { width, height } = tooltip.node().getBoundingClientRect();
+      tooltip.datum({ width, height });
+    }
+
+    function hideTooltip() {
+      tooltip.transition().style("opacity", 0);
+    }
+
+    function elementMouseOver(d) {
+      console.log(d);
+      featureCircle.style("opacity", function(v) {
+        if (d.id === v.id) {
+          return 1;
+        } else {
+          return 0.4;
+        }
+      });
+      featureLine.style("opacity", function(v) {
+        if (d.id === v.id) {
+          return 1;
+        } else {
+          return 0.3;
+        }
+      });
+      showTooltip(d);
+    }
+
+    function elementMouseOut() {
+      featureCircle.style("opacity", 1);
+      featureLine.style("opacity", 0.8);
+      hideTooltip();
+    }
+
+    function lineMouseOver(d) {}
     // code here
   });
 
