@@ -3,13 +3,22 @@ function migrationMap(option) {
   const el = option.el;
   const fillColor = option.fillColor;
   console.log(data);
+  const accessToken =
+    "pk.eyJ1Ijoic3RlbmluamEiLCJhIjoiSjg5eTMtcyJ9.g_O2emQF6X9RV69ibEsaIw";
   var map = new L.Map("map", {
     center: [37.8, -96.9],
     zoom: 4,
     minZoom: 4,
     maxZoom: 8
   }).addLayer(
-    new L.TileLayer("http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
+    new L.TileLayer(
+      "https://api.mapbox.com/styles/v1/mapbox/dark-v10/tiles/{z}/{x}/{y}?access_token=" +
+        accessToken,
+      {
+        attribution:
+          '© <a href="https://apps.mapbox.com/feedback/">Mapbox</a> © <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }
+    )
   );
 
   var svg = d3.select(map.getPanes().overlayPane).append("svg"),
