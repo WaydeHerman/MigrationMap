@@ -4,14 +4,16 @@ function migrationMap(option) {
   const bubbleColor = option.bubbleColor;
   const lineColor = option.lineColor;
   const height = option.height;
-  const width = option.width;
+  const width = option.width || "";
 
   const container = d3.select(el).classed("migration-map-viz", true);
 
   container.append("p").attr("id", "map");
 
   if (width === "") {
-    d3.select("#map").style("width", "100vw");
+    d3.select("#map")
+      .style("left", "0px")
+      .style("width", "100vw");
   } else {
     d3.select("#map").style("width", width + "px");
   }
@@ -19,6 +21,7 @@ function migrationMap(option) {
   if (height === "") {
     d3.select("#map")
       .style("height", "100vh")
+      .style("top", "0px")
       .style("position", "absolute");
   } else {
     d3.select("#map").style("height", height + "px");
