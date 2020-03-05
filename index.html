@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Migration Map</title>
+    <style>
+      @import url(//cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.css);
+
+      body {
+        margin: 0;
+        font-size: 14px;
+      }
+      .charts {
+        margin: 0 24px;
+        display: grid;
+        grid-template-rows: repeat(auto-fill, minmax(400px, 1fr));
+        grid-gap: 10px;
+      }
+
+      .chart {
+        margin-bottom: 24px;
+      }
+
+      #map {
+        width: 960px;
+        height: 500px;
+      }
+
+      .county {
+        stroke: black;
+        stroke-width: 1px;
+        fill-opacity: 0.7;
+      }
+
+      .feature-line {
+        stroke: #fffa9e;
+        opacity: 0.8;
+      }
+
+      .feature-circle {
+        opacity: 0.8;
+      }
+
+      .legend-container {
+        width: 220px;
+        height: 180px;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        position: relative;
+      }
+
+      .legend-text {
+        fill: white;
+        font-weight: bold;
+        text-anchor: middle;
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="migration-map-viz.css" />
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.5/leaflet.js"></script>
+    <script src="//d3js.org/topojson.v1.min.js"></script>
+    <script src="migration-map-viz.js"></script>
+  </head>
+
+  <body>
+    <div class="charts">
+      <div class="chart"></div>
+      <div class="chart">
+        <p id="map"></p>
+      </div>
+      <div class="chart"></div>
+    </div>
+
+    <script>
+      d3.csv("autauga.csv").then(function(data) {
+        /* columnChartViz({
+        el: document.getElementsByClassName("chart")[0],
+        data,
+        columnBars: "Years",
+        columnGrouping: "Age",
+        columnMeasure: "Value",
+        operationMeasure: "sum",
+        paletteFill: "single",
+        positionLegend: "bottom",
+        sort: "atoz",
+        labelX: "axis-x-label",
+        labelY: "axis-y-label"
+      }); */
+        migrationMap({
+          el: document.getElementsByClassName("chart")[1],
+          data
+        });
+      });
+    </script>
+  </body>
+</html>

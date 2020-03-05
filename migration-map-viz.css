@@ -1,0 +1,8 @@
+.migration-map-viz {
+  font-family: "Nunito", sans-serif;
+  font-size: 1em;
+}
+
+.migration-map-viz * {
+  box-sizing: border-box;
+}
