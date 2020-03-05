@@ -23,38 +23,7 @@
         margin-bottom: 24px;
       }
 
-      #map {
-        width: 960px;
-        height: 500px;
-      }
 
-      .county {
-        stroke: black;
-        stroke-width: 1px;
-        fill-opacity: 0.7;
-      }
-
-      .feature-line {
-        stroke: #fffa9e;
-        opacity: 0.8;
-      }
-
-      .feature-circle {
-      }
-
-      .legend-container {
-        width: 220px;
-        height: 180px;
-        background-color: rgba(0, 0, 0, 0.7);
-        z-index: 1000;
-        position: relative;
-      }
-
-      .legend-text {
-        fill: white;
-        font-weight: bold;
-        text-anchor: middle;
-      }
     </style>
     <link
       href="https://fonts.googleapis.com/css?family=Nunito:400,700&display=swap"
@@ -76,9 +45,7 @@
   <body>
     <div class="charts">
       <div class="chart"></div>
-      <div class="chart">
-        <p id="map"></p>
-      </div>
+      <div class="chart"></div>
       <div class="chart"></div>
     </div>
 
@@ -99,7 +66,11 @@
       }); */
         migrationMap({
           el: document.getElementsByClassName("chart")[1],
-          data
+          data,
+          bubbleColor: "#13B1F4",
+          lineColor: "#fffa9e",
+          height: "600",
+          width: "1000"
         });
       });
     </script>

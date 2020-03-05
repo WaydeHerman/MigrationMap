@@ -6,3 +6,31 @@
 .migration-map-viz * {
   box-sizing: border-box;
 }
+
+.county {
+  stroke: black;
+  stroke-width: 1px;
+  fill-opacity: 0.7;
+}
+
+.feature-line {
+  fill: none;
+  opacity: 0.8;
+}
+
+.feature-circle {
+}
+
+.legend-container {
+  width: 220px;
+  height: 180px;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 1000;
+  position: relative;
+}
+
+.legend-text {
+  fill: white;
+  font-weight: bold;
+  text-anchor: middle;
+}

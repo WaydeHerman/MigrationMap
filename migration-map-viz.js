@@ -1,14 +1,35 @@
 function migrationMap(option) {
   const data = option.data;
   const el = option.el;
-  const fillColor = option.fillColor;
-  console.log(data);
+  const bubbleColor = option.bubbleColor;
+  const lineColor = option.lineColor;
+  const height = option.height;
+  const width = option.width;
+
+  const container = d3.select(el).classed("migration-map-viz", true);
+
+  container.append("p").attr("id", "map");
+
+  if (width === "") {
+    d3.select("#map").style("width", "100vw");
+  } else {
+    d3.select("#map").style("width", width + "px");
+  }
+
+  if (height === "") {
+    d3.select("#map")
+      .style("height", "100vh")
+      .style("position", "absolute");
+  } else {
+    d3.select("#map").style("height", height + "px");
+  }
+
   const accessToken =
     "pk.eyJ1Ijoic3RlbmluamEiLCJhIjoiSjg5eTMtcyJ9.g_O2emQF6X9RV69ibEsaIw";
   var map = new L.Map("map", {
     center: [37.8, -96.9],
-    zoom: 4,
-    minZoom: 4,
+    zoom: 3,
+    minZoom: 3,
     maxZoom: 8
   }).addLayer(
     new L.TileLayer(
@@ -33,8 +54,9 @@ function migrationMap(option) {
     var totals = [];
     json.features.forEach(function(v) {
       v.properties.AtoB = 0;
+      v.id = formatIdToFIPS(v.id);
       data.forEach(function(w) {
-        if (v.properties.name === w.CountyA) {
+        if (v.id === w["FIPSA"]) {
           v.properties.AtoB += +w.AtoB;
         }
       });
@@ -42,8 +64,6 @@ function migrationMap(option) {
     });
 
     var maxVal = d3.max(totals);
-
-    console.log(maxVal);
 
     /* var colorScale = d3
       .scaleSequential()
@@ -65,8 +85,14 @@ function migrationMap(option) {
       .selectAll(".line")
       .data(json.features)
       .enter()
-      .append("line")
-      .attr("class", "feature-line");
+      .append("path");
+
+    var sourcePoint = g
+      .selectAll(".source")
+      .data([0])
+      .enter()
+      .append("circle")
+      .attr("class", "source");
 
     var featureCircle = g
       .selectAll("circle")
@@ -95,23 +121,50 @@ function migrationMap(option) {
       .attr("y", 30)
       .text("Population Movement to Autauga");
 
-    legendSVG
-      .append("circle")
-      .attr("fill", "#13B1F4")
-      .attr("cx", 50)
-      .attr("cy", 100)
-      .attr("r", z(maxVal));
+    var legend_examples = [0.1 * maxVal, maxVal / 2, maxVal];
 
     legendSVG
+      .selectAll(".legend-circle")
+      .data(legend_examples)
+      .enter()
+      .append("circle")
+      .attr("fill", "none")
+      .attr("stroke", bubbleColor)
+      .attr("stroke-width", "2px")
+      .attr("cx", 50)
+      .attr("cy", function(d) {
+        return 100 + z(maxVal) - z(d);
+      })
+      .attr("r", function(d) {
+        return z(d);
+      });
+
+    legendSVG
+      .selectAll(".legend-circle")
+      .data(legend_examples)
+      .enter()
       .append("text")
       .attr("class", "legend-text")
-      .attr("x", 50)
-      .attr("y", 150)
-      .text(formatNumber(maxVal));
+      .attr("x", 110)
+      .attr("y", function(d) {
+        return 100 + z(maxVal) - 2 * z(d);
+      })
+      .attr("dy", 5)
+      .text(function(d) {
+        return formatNumber(d);
+      });
 
+    /* legendSVG
+      .append("circle")
+      .attr("fill", bubbleColor)
+      .attr("cx", 50)
+      .attr("cy", 100)
+      .attr("r", z(maxVal)); */
+
+    /*
     legendSVG
       .append("line")
-      .attr("stroke", "#fffa9e")
+      .attr("stroke", lineColor)
       .attr("x1", 130)
       .attr("x2", 190)
       .attr("y1", 100)
@@ -123,7 +176,9 @@ function migrationMap(option) {
       .attr("class", "legend-text")
       .attr("x", 160)
       .attr("y", 150)
-      .text(formatNumber(maxVal));
+      .text(formatNumber(maxVal)); */
+
+    var lineGenerator = d3.line().curve(d3.curveCardinal);
 
     function reset() {
       var bounds = path.bounds(json),
@@ -143,7 +198,7 @@ function migrationMap(option) {
       //feature.attr("d", path).attr("class", "county");
 
       featureCircle
-        .attr("fill", "#13B1F4")
+        .attr("fill", bubbleColor)
         .attr("cx", function(d) {
           return path.centroid(d)[0];
         })
@@ -155,6 +210,36 @@ function migrationMap(option) {
         });
 
       featureLine
+        .attr("class", "feature-line")
+        .style("stroke", lineColor)
+        .attr("stroke-width", function(d) {
+          if (d.properties.AtoB > 500) {
+          }
+          return z(d.properties.AtoB);
+        })
+        .attr("d", function(d, i) {
+          var x1 = path.centroid(json.features[0])[0];
+          var y1 = path.centroid(json.features[0])[1];
+          var x2 = path.centroid(d)[0];
+          var y2 = path.centroid(d)[1];
+          return (
+            "M" +
+            x2 +
+            "," +
+            y2 +
+            " Q" +
+            (x1 + x2) / 2 +
+            " " +
+            (y1 + y2) / 1.7 +
+            " " +
+            x1 +
+            " " +
+            y1
+          );
+        });
+
+      /* featureLine
+        .style("stroke", lineColor)
         .attr("x1", path.centroid(json.features[0])[0])
         .attr("y1", path.centroid(json.features[0])[1])
         .attr("x2", function(d) {
@@ -164,8 +249,18 @@ function migrationMap(option) {
           return path.centroid(d)[1];
         })
         .attr("stroke-width", function(d) {
+          if (d.properties.AtoB > 500) {
+          }
           return z(d.properties.AtoB);
-        });
+        }); */
+
+      sourcePoint
+        .style("stroke", lineColor)
+        .style("stroke-width", "3px")
+        .style("fill", "white")
+        .attr("cx", path.centroid(json.features[0])[0])
+        .attr("cy", path.centroid(json.features[0])[1])
+        .attr("r", 10);
     }
 
     // Use Leaflet to implement a D3 geometric transformation.
@@ -176,6 +271,15 @@ function migrationMap(option) {
 
     // code here
   });
+
+  //
+  function formatIdToFIPS(d) {
+    var padding = 6 - (d + "").length;
+    for (let i = 0; i < padding; i++) {
+      d = "0" + d;
+    }
+    return d;
+  }
   // Format number
   function formatNumber(d) {
     if (d < 1e3) {
