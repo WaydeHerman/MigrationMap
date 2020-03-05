@@ -13,6 +13,7 @@ function migrationMap(option) {
   if (width === "") {
     d3.select("#map")
       .style("left", "0px")
+      .style("margin-top", "0px")
       .style("width", "100vw");
   } else {
     d3.select("#map").style("width", width + "px");
@@ -30,8 +31,8 @@ function migrationMap(option) {
   const accessToken =
     "pk.eyJ1Ijoic3RlbmluamEiLCJhIjoiSjg5eTMtcyJ9.g_O2emQF6X9RV69ibEsaIw";
   var map = new L.Map("map", {
-    center: [37.8, -96.9],
-    zoom: 3,
+    center: [47.8, -110.9],
+    zoom: 4,
     minZoom: 3,
     maxZoom: 8
   }).addLayer(
