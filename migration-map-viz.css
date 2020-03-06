@@ -23,8 +23,8 @@
 }
 
 .legend-container {
-  width: 220px;
-  height: 180px;
+  width: 400px;
+  height: 300px;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1000;
   position: relative;
@@ -33,17 +33,50 @@
 .legend-text {
   fill: white;
   font-weight: bold;
-  text-anchor: middle;
+}
+
+.legend-title {
+  color: white;
+  font-size: 1.4em;
+  position: relative;
+  display: inline-block;
+  opacity: 0.8;
+  top: 10px;
+  left: 10px;
+}
+
+.legend-area-title {
+  color: white;
+  font-size: 1.2em;
+  float: right;
+  top: 10px;
+  position: relative;
+  margin-right: 10px;
+}
+
+.flow-picker-container {
+  position: relative;
+  top: 20px;
+  padding: 10px;
+  margin: 20px;
+  border-bottom: 1px solid white;
+}
+
+.flow-picker-text {
+  color: white;
+  display: inline-block;
+  position: relative;
+  left: 10px;
 }
 
 /* Dropdown Button */
 .dropbtn {
-  background-color: #787878;
+  background-color: transparent;
+  border: 1px solid #747474;
   color: white;
-  padding: 5px;
+  padding: 10px;
   font-weight: bold;
   font-size: 10px;
-  border: none;
   cursor: pointer;
   min-width: 120px;
   text-anchor: middle;
@@ -53,8 +86,7 @@
 .dropdown-flow {
   margin: auto;
   position: relative;
-  top: -40px;
-  left: 20px;
+  left: 150px;
   display: inline-block;
   text-anchor: middle;
   min-width: 150px;
@@ -65,12 +97,13 @@
   display: none;
   position: absolute;
   background-color: #f1f1f1;
-  min-width: 135px;
+  font-weight: bold;
+  min-width: 120px;
   z-index: 1;
   max-height: 530px;
   overflow: auto;
   text-anchor: middle;
-  top: 0px;
+  top: 34px;
 }
 
 /* Links inside the dropdown */
@@ -105,12 +138,23 @@ i {
   border-width: 0 2px 2px 0;
   display: inline-block;
   padding: 2px;
-  margin-right: 5px;
+  margin-left: 10px;
 }
 
 .down {
   transform: rotate(45deg);
   -webkit-transform: rotate(45deg);
+}
+
+.export-option-container {
+  border-top: 1px solid white;
+  margin-left: 20px;
+  margin-right: 20px;
+  padding: 20px;
+}
+
+.export-option-label {
+  color: white;
 }
 
 .chart-tooltip {
@@ -134,4 +178,12 @@ i {
 
 .chart-tooltip .tooltip-value {
   color: #a6a6a6;
+}
+
+.triangle-down {
+  width: 0;
+  height: 0;
+  border-left: 25px solid transparent;
+  border-right: 25px solid transparent;
+  border-top: 50px solid white;
 }
