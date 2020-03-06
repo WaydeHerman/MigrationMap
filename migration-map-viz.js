@@ -7,7 +7,7 @@ function migrationMap(option) {
   var mode = "TO";
   const bubbleColor = "#5aaeae";
   const lineOutColor = "#cdd399";
-  const lineInColor = "#93836b";
+  const lineInColor = "#c84d45";
   var maxVal = 0;
   var exportOpen = 0;
   var elementActive = "";
@@ -154,7 +154,7 @@ function migrationMap(option) {
       legendContainer
         .append("div")
         .attr("class", "legend-title")
-        .text("Migration Trend");
+        .text("2012-2017 Migration Trends");
 
       legendContainer
         .append("div")
@@ -202,10 +202,12 @@ function migrationMap(option) {
           updateLegend();
         });
 
+      legendContainer.append("div");
+
       var legendSVG = legendContainer
         .append("svg")
         .attr("width", 200)
-        .attr("height", 120);
+        .attr("height", 95);
 
       /*legendSVG
         .append("text")
@@ -225,10 +227,10 @@ function migrationMap(option) {
         .attr("x1", 50)
         .attr("x2", 105)
         .attr("y1", function(d) {
-          return 70 + z(maxValTO) - 2 * z(d);
+          return 55 + z(maxValTO) - 2 * z(d);
         })
         .attr("y2", function(d) {
-          return 70 + z(maxValTO) - 2 * z(d);
+          return 55 + z(maxValTO) - 2 * z(d);
         })
         .attr("dy", 5);
 
@@ -242,7 +244,7 @@ function migrationMap(option) {
         .attr("stroke-width", "2px")
         .attr("cx", 50)
         .attr("cy", function(d, i) {
-          return 70 + z(maxValTO) - z(d);
+          return 55 + z(maxValTO) - z(d);
         })
         .attr("r", function(d) {
           return z(d);
@@ -256,7 +258,7 @@ function migrationMap(option) {
         .attr("class", "legend-text")
         .attr("x", 110)
         .attr("y", function(d) {
-          return 72 + z(maxValTO) - 2 * z(d);
+          return 57 + z(maxValTO) - 2 * z(d);
         })
         .attr("dy", 5)
         .text(function(d) {

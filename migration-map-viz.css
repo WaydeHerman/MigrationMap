@@ -39,7 +39,6 @@
   color: white;
   font-size: 1.4em;
   position: relative;
-  display: inline-block;
   opacity: 0.8;
   top: 10px;
   left: 10px;
@@ -48,10 +47,9 @@
 .legend-area-title {
   color: white;
   font-size: 1.2em;
-  float: right;
-  top: 10px;
+  top: 20px;
+  left: 10px;
   position: relative;
-  margin-right: 10px;
 }
 
 .legend-axis {
@@ -63,10 +61,11 @@
 
 .flow-picker-container {
   position: relative;
-  top: 20px;
+  top: 10px;
   padding: 10px;
   margin: 20px;
   border-bottom: 1px solid white;
+  border-top: 1px solid white;
 }
 
 .flow-picker-text {
