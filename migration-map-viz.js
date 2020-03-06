@@ -1,13 +1,16 @@
 function migrationMap(option) {
   const fips = option.fips;
   const el = option.el;
-  const bubbleColor = option.bubbleColor;
-  const lineColor = option.lineColor;
   const height = option.height;
   const width = option.width || "";
 
   var mode = "TO";
+  const bubbleColor = "#5aaeae";
+  const lineOutColor = "#cdd399";
+  const lineInColor = "#93836b";
   var maxVal = 0;
+  var exportOpen = 0;
+  var elementActive = "";
 
   const container = d3.select(el).classed("migration-map-viz", true);
   container.append("p").attr("id", "map");
@@ -92,7 +95,7 @@ function migrationMap(option) {
         }
         totalsTO.push(v.properties.TO);
         totalsFROM.push(v.properties.FROM);
-        totalsNET.push(v.properties.NET);
+        totalsNET.push(Math.abs(v.properties.NET));
       });
 
       var maxValTO = d3.max(totalsTO);
@@ -115,7 +118,7 @@ function migrationMap(option) {
 
       var z = d3
         .scaleLinear()
-        .domain([0, maxVal])
+        .domain([0, maxValTO])
         .rangeRound([0, 30]);
 
       var featureLine = g
@@ -196,6 +199,7 @@ function migrationMap(option) {
         .on("click", function(d) {
           mode = d.mode;
           reset();
+          updateLegend();
         });
 
       var legendSVG = legendContainer
@@ -203,14 +207,30 @@ function migrationMap(option) {
         .attr("width", 200)
         .attr("height", 120);
 
-      legendSVG
+      /*legendSVG
         .append("text")
         .attr("class", "legend-text")
         .attr("x", 110)
         .attr("y", 225)
-        .text("Migration Trends");
+        .text("Migration Trends");*/
 
-      var legend_examples = [0.1 * maxVal, maxVal / 2, maxVal];
+      var legend_examples = [0.1 * maxValTO, maxValTO / 2, maxValTO];
+
+      legendSVG
+        .selectAll(".legend-axis")
+        .data(legend_examples)
+        .enter()
+        .append("line")
+        .attr("class", "legend-axis")
+        .attr("x1", 50)
+        .attr("x2", 105)
+        .attr("y1", function(d) {
+          return 70 + z(maxValTO) - 2 * z(d);
+        })
+        .attr("y2", function(d) {
+          return 70 + z(maxValTO) - 2 * z(d);
+        })
+        .attr("dy", 5);
 
       legendSVG
         .selectAll(".legend-circle")
@@ -222,7 +242,7 @@ function migrationMap(option) {
         .attr("stroke-width", "2px")
         .attr("cx", 50)
         .attr("cy", function(d, i) {
-          return 90 + z(maxVal) - z(d);
+          return 70 + z(maxValTO) - z(d);
         })
         .attr("r", function(d) {
           return z(d);
@@ -236,7 +256,7 @@ function migrationMap(option) {
         .attr("class", "legend-text")
         .attr("x", 110)
         .attr("y", function(d) {
-          return 90 + z(maxVal) - 2 * z(d);
+          return 72 + z(maxValTO) - 2 * z(d);
         })
         .attr("dy", 5)
         .text(function(d) {
@@ -253,6 +273,16 @@ function migrationMap(option) {
         .text("Export Options");
 
       exportOptionContainer.append("div").attr("class", "export-option-arrow");
+
+      d3.select(".export-option-container").on("click", function() {
+        if (exportOpen === 0) {
+          exportOpen = 1;
+          d3.select(".legend-container").style("height", "400px");
+        } else {
+          exportOpen = 0;
+          d3.select(".legend-container").style("height", "305px");
+        }
+      });
 
       /* legendSVG
       .append("circle")
@@ -327,11 +357,26 @@ function migrationMap(option) {
           })
           .on("mouseover", elementMouseOver)
           .on("mousemove", moveTooltip)
-          .on("mouseout", elementMouseOut);
+          .on("mouseout", elementMouseOut)
+          .on("click", elementclick);
 
         featureLine
           .attr("class", "feature-line")
-          .style("stroke", lineColor)
+          .style("stroke", function(d) {
+            if (mode === "TO") {
+              return lineOutColor;
+            }
+            if (mode === "FROM") {
+              return lineInColor;
+            }
+            if (mode === "NET") {
+              if (d.properties["NET"] >= 0) {
+                return lineOutColor;
+              } else {
+                return lineInColor;
+              }
+            }
+          })
           .attr("stroke-width", function(d) {
             if (mode != "NET") {
               return (d.properties[mode] * 60) / d3.sum(totals);
@@ -386,7 +431,13 @@ function migrationMap(option) {
         }); */
 
         sourcePoint
-          .style("stroke", lineColor)
+          .style("stroke", function() {
+            if (mode !== "FROM") {
+              return lineOutColor;
+            } else {
+              return lineInColor;
+            }
+          })
           .style("stroke-width", "3px")
           .style("fill", "white")
           .attr("cx", function(d) {
@@ -431,7 +482,44 @@ function migrationMap(option) {
         tooltip.style("transform", `translate(${x}px,${y}px)`);
       }
 
-      function updateMode() {}
+      function updateLegend() {
+        d3.selectAll(".legend-text").text(function(d, i) {
+          if (i === 0) {
+            return formatNumber(0.1 * maxVal);
+          }
+          if (i === 1) {
+            return formatNumber(maxVal / 2);
+          }
+          if (i === 2) {
+            return formatNumber(maxVal);
+          }
+        });
+        d3.selectAll(".legend-circle")
+          .attr("cy", function(d, i) {
+            if (i === 0) {
+              value = 0.1 * maxVal;
+            }
+            if (i === 1) {
+              value = maxVal / 2;
+            }
+            if (i === 2) {
+              value = maxVal;
+            }
+            return 70 + z(maxVal) - z(value);
+          })
+          .attr("r", function(d, i) {
+            if (i === 0) {
+              value = 0.1 * maxVal;
+            }
+            if (i === 1) {
+              value = maxVal / 2;
+            }
+            if (i === 2) {
+              value = maxVal;
+            }
+            return z(value);
+          });
+      }
 
       function showTooltip(d) {
         var tt_desc = "Flow from " + d.properties.name + " to " + sourceName;
@@ -453,28 +541,48 @@ function migrationMap(option) {
         tooltip.transition().style("opacity", 0);
       }
 
+      function elementclick(d) {
+        if (d.id === elementActive) {
+          elementActive = "";
+          elementMouseOut();
+          d3.select(".legend-container").style("height", "305px");
+        } else {
+          elementActive = "";
+          elementMouseOver(d);
+          elementActive = d.id;
+          var windowHeight = window.innerHeight;
+          d3.select(".legend-container").style(
+            "height",
+            windowHeight - 40 + "px"
+          );
+        }
+      }
+
       function elementMouseOver(d) {
-        console.log(d);
-        featureCircle.style("opacity", function(v) {
-          if (d.id === v.id) {
-            return 1;
-          } else {
-            return 0.4;
-          }
-        });
-        featureLine.style("opacity", function(v) {
-          if (d.id === v.id) {
-            return 1;
-          } else {
-            return 0.3;
-          }
-        });
+        if (elementActive === "") {
+          featureCircle.style("opacity", function(v) {
+            if (d.id === v.id) {
+              return 1;
+            } else {
+              return 0.4;
+            }
+          });
+          featureLine.style("opacity", function(v) {
+            if (d.id === v.id) {
+              return 1;
+            } else {
+              return 0.3;
+            }
+          });
+        }
         showTooltip(d);
       }
 
       function elementMouseOut() {
-        featureCircle.style("opacity", 1);
-        featureLine.style("opacity", 0.8);
+        if (elementActive === "") {
+          featureCircle.style("opacity", 1);
+          featureLine.style("opacity", 0.8);
+        }
         hideTooltip();
       }
 
