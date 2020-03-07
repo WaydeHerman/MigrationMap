@@ -84,9 +84,11 @@ function migrationMap(option) {
         sourceName,
         maxValTO,
         maxValFROM,
-        maxValNET;
+        maxValNET,
+        currentData;
 
       function plot(data, type) {
+        currentData = data;
         document.getElementsByClassName("leaflet-zoom-hide").innerHTML = "";
         d3.selectAll(".feature-circle").remove();
         d3.selectAll(".feature-line").remove();
@@ -155,7 +157,7 @@ function migrationMap(option) {
         z = d3
           .scaleLinear()
           .domain([0, maxValue])
-          .range([0, 30]);
+          .range([1.5, 30]);
 
         curveScale = d3
           .scaleLinear()
@@ -326,25 +328,53 @@ function migrationMap(option) {
           return formatNumber(d);
         });
 
+      var exportOptionBtn = legendContainer
+        .append("div")
+        .attr("class", "export-option-btn");
+
+      exportOptionBtn
+        .append("div")
+        .attr("class", "export-option-btn-label")
+        .text("Export Options");
+
+      exportOptionBtn.append("div").attr("class", "export-option-arrow");
+
       var exportOptionContainer = legendContainer
         .append("div")
-        .attr("class", "export-option-container");
+        .attr("class", "export-option-container")
+        .style("display", "none");
 
       exportOptionContainer
         .append("div")
-        .attr("class", "export-option-label")
-        .text("Export Options");
+        .attr("class", "export-option export-option-1")
+        .style("display", "none")
+        .on("click", function() {
+          exportPNG();
+        });
+      exportOptionContainer
+        .append("div")
+        .attr("class", "export-option export-option-2")
+        .style("display", "none")
+        .on("click", function() {
+          exportCSV();
+        });
 
-      exportOptionContainer.append("div").attr("class", "export-option-arrow");
-
-      d3.select(".export-option-container").on("click", function() {
+      d3.select(".export-option-btn").on("click", function() {
         if (elementActive === "") {
           if (exportOpen === 0) {
             exportOpen = 1;
-            d3.select(".legend-container").style("height", "400px");
+            d3.select(".legend-container").style("height", "360px");
+            d3.select(".export-option-container").style("display", "block");
+            d3.select(".export-option-1")
+              .html("Export map as image")
+              .style("display", "block");
+            d3.select(".export-option-2")
+              .html("Export map data")
+              .style("display", "block");
           } else {
             exportOpen = 0;
             d3.select(".legend-container").style("height", "305px");
+            d3.select(".export-option-container").style("display", "none");
           }
         }
       });
@@ -405,7 +435,7 @@ function migrationMap(option) {
         var z = d3
           .scaleLinear()
           .domain([0, maxVal])
-          .rangeRound([0, 30]);
+          .rangeRound([1.5, 30]);
 
         //feature.attr("d", path).attr("class", "county");
 
@@ -418,7 +448,11 @@ function migrationMap(option) {
             return path.centroid(d)[1];
           })
           .attr("r", function(d) {
-            return Math.abs(z(d.properties[mode]));
+            if (d.properties[mode] > 0) {
+              return Math.abs(z(d.properties[mode]));
+            } else {
+              return 0;
+            }
           })
           .on("mouseover", elementMouseOver)
           .on("mousemove", moveTooltip)
@@ -443,13 +477,18 @@ function migrationMap(option) {
             }
           })
           .attr("stroke-width", function(d) {
-            if (mode != "NET") {
-              return (d.properties[mode] * 60) / d3.sum(totals);
+            if (d.properties[mode] > 0) {
+              if (mode != "NET") {
+                return 0.5 + (d.properties[mode] * 100) / d3.sum(totals);
+              } else {
+                return (
+                  0.5 +
+                  ((d.properties["TO"] + d.properties["FROM"]) * 100) /
+                    (d3.sum(totalsTO) + d3.sum(totalsFROM))
+                );
+              }
             } else {
-              return (
-                ((d.properties["TO"] + d.properties["FROM"]) * 60) /
-                (d3.sum(totalsTO) + d3.sum(totalsFROM))
-              );
+              return 0;
             }
           })
           .style("opacity", 0.8)
@@ -478,7 +517,8 @@ function migrationMap(option) {
           })
           .on("mouseover", elementMouseOver)
           .on("mousemove", moveTooltip)
-          .on("mouseout", elementMouseOut);
+          .on("mouseout", elementMouseOut)
+          .on("click", elementclick);
 
         /* featureLine
         .style("stroke", lineColor)
@@ -530,6 +570,31 @@ function migrationMap(option) {
       tooltip.append("div").attr("class", "tooltip-desc");
       tooltip.append("div").attr("class", "tooltip-total");
       tooltip.append("div").attr("class", "tooltip-percentage");
+
+      function exportPNG() {
+        console.log("test");
+
+        domtoimage.toBlob(document.getElementById("map")).then(function(blob) {
+          window.saveAs(blob, "my-node.png");
+        });
+      }
+
+      function exportCSV() {
+        let csvContent = currentData.columns.join(",") + "\r\n";
+
+        console.log(csvContent);
+
+        currentData.forEach(function(rowArray) {
+          rowList = [];
+          currentData.columns.forEach(function(v) {
+            rowList.push(rowArray[v]);
+          });
+          let row = rowList.join(",");
+          csvContent += row + "\r\n";
+        });
+        var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        saveAs(blob, "data.csv");
+      }
 
       function moveTooltip() {
         let padding = 10;
@@ -628,7 +693,7 @@ function migrationMap(option) {
           );
           d3.select(".node-info-container")
             .style("display", "block")
-            .style("height", windowHeight - 440 + "px");
+            .style("height", windowHeight - 410 + "px");
           //
           active_node = d;
           node_info(active_node);
@@ -655,18 +720,21 @@ function migrationMap(option) {
             var word2 = " to ";
             var modeOption = "TO";
             var modeOptionText = "In-Flow";
+            var currentModeOption = "Out-Flow";
           }
           if (mode === "TO") {
             var word1 = "To ";
             var word2 = " from ";
             var modeOption = "FROM";
             var modeOptionText = "Out-Flow";
+            var currentModeOption = "In-Flow";
           }
           if (mode === "NET") {
             var word1 = " from ";
             var word2 = " to ";
             var modeOption = "TO";
             var modeOptionText = "In-Flow";
+            var currentModeOption = "Out-Flow";
           }
           var targetTotal = [];
           nodeData.forEach(function(v) {
@@ -741,6 +809,14 @@ function migrationMap(option) {
                 modeOptionText + " <i class='arrow down'></i>"
               );
             });
+          d3.select(".export-option-container").style("display", "block");
+          d3.select(".export-option-1")
+            .html("Export map as image")
+            .style("display", "block");
+
+          d3.select(".export-option-2")
+            .html("Export map data")
+            .style("display", "block");
         });
       }
 

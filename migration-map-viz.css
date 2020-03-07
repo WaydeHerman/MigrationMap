@@ -22,6 +22,15 @@
   cursor: pointer;
 }
 
+#images {
+  left: 0px;
+  top: 0px;
+  position: absolute;
+  margin-top: 0px;
+  width: 100vw;
+  height: 100vh;
+}
+
 .legend-container {
   width: 400px;
   height: 305px;
@@ -90,7 +99,7 @@
 }
 
 .node-info-link {
-  color: blue;
+  color: #2f61a2;
   font-weight: bold;
   cursor: pointer;
   padding: 10px;
@@ -174,7 +183,7 @@ i {
   -webkit-transform: rotate(45deg);
 }
 
-.export-option-container {
+.export-option-btn {
   border-top: 1px solid white;
   margin-left: 10px;
   margin-right: 10px;
@@ -182,12 +191,20 @@ i {
   cursor: pointer;
 }
 
-.export-option-container:hover {
+.export-option-btn:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.export-option-label {
+.export-option-btn-label {
   color: white;
+}
+
+.export-option {
+  color: #2f61a2;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px;
+  padding-bottom: 0px;
 }
 
 .chart-tooltip {
