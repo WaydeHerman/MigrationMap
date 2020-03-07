@@ -1,5 +1,5 @@
 function migrationMap(option) {
-  const fips = option.fips;
+  var fips = option.fips;
   const el = option.el;
   const height = option.height;
   const width = option.width || "";
@@ -72,76 +72,117 @@ function migrationMap(option) {
       var transform = d3.geoTransform({ point: projectPoint }),
         path = d3.geoPath().projection(transform);
 
-      // Process Data
-      var totalsTO = [];
-      var totalsFROM = [];
-      var totalsNET = [];
-      json.features.forEach(function(v) {
-        v.properties.TO = 0;
-        v.properties.FROM = 0;
-        v.properties.NET = 0;
-        v.id = formatIdToFIPS(v.id);
-        data.forEach(function(w) {
-          if (v.id === formatIdToFIPS(w["GEOID2"])) {
-            // may have the TO & FROM switched
-            v.properties.FROM += +w["MOVEDOUT"];
-            v.properties.NET += +w["MOVEDNET"];
-            v.properties.TO += +w["MOVEDOUT"] + +w["MOVEDNET"];
-            v.properties.fullName = w["FULL2_NAME"];
+      var z,
+        featureLine,
+        featureCircle,
+        sourcePoint,
+        sourceFullName,
+        totalsTO,
+        totalsFROM,
+        totalsNET,
+        sourceData,
+        sourceName,
+        maxValTO,
+        maxValFROM,
+        maxValNET;
+
+      function plot(data, type) {
+        document.getElementsByClassName("leaflet-zoom-hide").innerHTML = "";
+        d3.selectAll(".feature-circle").remove();
+        d3.selectAll(".feature-line").remove();
+        d3.selectAll(".source").remove();
+        json_copy = JSON.parse(JSON.stringify(json));
+        // Process Data
+        totalsTO = [];
+        totalsFROM = [];
+        totalsNET = [];
+        json_copy.features.forEach(function(v) {
+          v.properties.TO = 0;
+          v.properties.FROM = 0;
+          v.properties.NET = 0;
+          v.id = formatIdToFIPS(v.id);
+          data.forEach(function(w) {
+            if (v.id === formatIdToFIPS(w["GEOID2"])) {
+              // may have the TO & FROM switched
+              v.properties.FROM += +w["MOVEDOUT"];
+              v.properties.NET += +w["MOVEDNET"];
+              v.properties.TO += +w["MOVEDOUT"] + +w["MOVEDNET"];
+              v.properties.fullName = w["FULL2_NAME"];
+            }
+          });
+          if (v.id === formatIdToFIPS(fips)) {
+            sourceData = v;
+            sourceName = v.properties.name;
+            sourceFullName = data[0]["FULL1_NAME"];
           }
+          totalsTO.push(v.properties.TO);
+          totalsFROM.push(v.properties.FROM);
+          totalsNET.push(Math.abs(v.properties.NET));
         });
-        if (v.id === formatIdToFIPS(fips)) {
-          sourceData = v;
-          sourceName = v.properties.name;
-          sourceFullName = data[0]["FULL1_NAME"];
+
+        distance_list = [];
+        json_copy.features.forEach(function(d) {
+          var x1 = path.centroid(sourceData)[0];
+          var y1 = path.centroid(sourceData)[1];
+          var x2 = path.centroid(d)[0];
+          var y2 = path.centroid(d)[1];
+          var distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+          distance_list.push(distance);
+        });
+
+        maxValTO = d3.max(totalsTO);
+        maxValFROM = d3.max(totalsFROM);
+        maxValNET = d3.max(totalsNET);
+
+        if (type === "TO") {
+          maxValue = maxValTO;
         }
-        totalsTO.push(v.properties.TO);
-        totalsFROM.push(v.properties.FROM);
-        totalsNET.push(Math.abs(v.properties.NET));
-      });
+        if (type === "FROM") {
+          maxValue = maxValFROM;
+        }
+        if (type === "NET") {
+          maxValue = maxValNET;
+        }
 
-      var maxValTO = d3.max(totalsTO);
-      var maxValFROM = d3.max(totalsFROM);
-      var maxValNET = d3.max(totalsNET);
+        console.log("maxValTO", maxValTO);
+        console.log("maxValFROM", maxValFROM);
+        console.log("maxValNET", maxValNET);
 
-      console.log("maxValTO", maxValTO);
-      console.log("maxValFROM", maxValFROM);
-      console.log("maxValNET", maxValNET);
+        console.log("sourceData", sourceData);
+        console.log("sourceName", sourceName);
+        console.log("sourceFullName", sourceFullName);
 
-      console.log("sourceData", sourceData);
-      console.log("sourceName", sourceName);
-      console.log("sourceFullName", sourceFullName);
+        z = d3
+          .scaleLinear()
+          .domain([0, maxValue])
+          .range([0, 30]);
 
-      /*var feature = g
-      .selectAll("path")
-      .data(json.features)
-      .enter()
-      .append("path"); */
+        curveScale = d3
+          .scaleLinear()
+          .domain([0, d3.max(distance_list)])
+          .range([2, 1]);
 
-      var z = d3
-        .scaleLinear()
-        .domain([0, maxValFROM])
-        .rangeRound([0, 30]);
+        featureLine = g
+          .selectAll(".feature-line")
+          .data(json_copy.features)
+          .enter()
+          .append("path");
 
-      var featureLine = g
-        .selectAll(".line")
-        .data(json.features)
-        .enter()
-        .append("path");
+        sourcePoint = g
+          .selectAll(".source")
+          .data([sourceData])
+          .enter()
+          .append("circle");
 
-      var sourcePoint = g
-        .selectAll(".source")
-        .data([sourceData])
-        .enter()
-        .append("circle")
-        .attr("class", "source");
+        featureCircle = g
+          .selectAll(".feature-circle")
+          .data(json_copy.features)
+          .enter()
+          .append("circle")
+          .attr("class", "feature-circle");
+      }
 
-      var featureCircle = g
-        .selectAll("circle")
-        .data(json.features)
-        .enter()
-        .append("circle")
-        .attr("class", "feature-circle");
+      plot(data, "FROM");
 
       map.on("viewreset", reset);
       reset();
@@ -203,7 +244,9 @@ function migrationMap(option) {
           reset();
           updateLegend();
           d3.select(".dropbtn").html(d.name + " <i class='arrow down'></i>");
-          node_info(active_node);
+          if (elementActive !== "") {
+            node_info(active_node);
+          }
         });
 
       var nodeInfoContainer = legendContainer
@@ -331,7 +374,7 @@ function migrationMap(option) {
       .text(formatNumber(maxVal)); */
 
       function reset() {
-        var bounds = path.bounds(json),
+        var bounds = path.bounds(json_copy),
           topLeft = bounds[0],
           bottomRight = bounds[1];
 
@@ -411,11 +454,13 @@ function migrationMap(option) {
           })
           .style("opacity", 0.8)
           .attr("d", function(d, i) {
-            if (d.AtoB != 0) {
+            if (d[mode] != 0) {
               var x1 = path.centroid(sourceData)[0];
               var y1 = path.centroid(sourceData)[1];
               var x2 = path.centroid(d)[0];
               var y2 = path.centroid(d)[1];
+              var distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+              console.log(curveScale(distance));
               return (
                 "M" +
                 x2 +
@@ -424,7 +469,7 @@ function migrationMap(option) {
                 " Q" +
                 (x1 + x2) / 2 +
                 " " +
-                (y1 + y2) / 1.7 +
+                (y1 + y2) / curveScale(distance) + //1.7
                 " " +
                 x1 +
                 " " +
@@ -453,6 +498,7 @@ function migrationMap(option) {
         }); */
 
         sourcePoint
+          .attr("class", "source")
           .style("stroke", function() {
             if (mode !== "FROM") {
               return lineOutColor;
@@ -593,12 +639,9 @@ function migrationMap(option) {
       function node_info(d) {
         var nextCountyVar = d.id.slice(-3);
         var nextStateVar = d.id.slice(0, d.id.length - 3);
-        console.log(nextStateVar.slice(0, 1));
         if (nextStateVar.slice(0, 1) === "0") {
           nextStateVar = nextStateVar.slice(1);
         }
-        console.log("nextCountyVar", nextCountyVar);
-        console.log("nextStateVar", nextStateVar);
 
         var nextBaseUrl =
           "https://api.census.gov/data/2017/acs/flows?get=MOVEDIN,GEOID1,GEOID2,MOVEDOUT,FULL1_NAME,FULL2_NAME,MOVEDNET&for=county:" +
@@ -612,19 +655,19 @@ function migrationMap(option) {
             var word1 = "From ";
             var word2 = " to ";
             var modeOption = "TO";
-            var modeOptionText = " in-flow ";
+            var modeOptionText = "In-Flow";
           }
           if (mode === "TO") {
             var word1 = "To ";
             var word2 = " from ";
             var modeOption = "FROM";
-            var modeOptionText = " out-flow ";
+            var modeOptionText = "Out-Flow";
           }
           if (mode === "NET") {
             var word1 = " from ";
             var word2 = " to ";
             var modeOption = "TO";
-            var modeOptionText = " in-flow ";
+            var modeOptionText = "In-Flow";
           }
           var targetTotal = [];
           nodeData.forEach(function(v) {
@@ -639,7 +682,6 @@ function migrationMap(option) {
               }
             }
           });
-          console.log(targetTotal);
           console.log(d);
           d3.select(".node-info-1").html(
             word1 +
@@ -675,9 +717,31 @@ function migrationMap(option) {
               d3.sum(targetTotal) +
               ")"
           );
-          d3.select("#node-change").html(
-            "See" + modeOptionText + word2.toLowerCase() + d.properties.fullName
-          );
+          d3.select("#node-change")
+            .html(
+              "See " +
+                modeOptionText.toLowerCase() +
+                " " +
+                word2.toLowerCase() +
+                d.properties.fullName
+            )
+            .on("click", function() {
+              mode = modeOption;
+              elementActive = "";
+              fips = d.id;
+              plot(nodeData, modeOption);
+              reset();
+              elementMouseOut();
+              d3.select(".legend-container").style("height", "305px");
+              d3.select(".node-info-container")
+                .style("display", "none")
+                .style("height", "0px");
+              d3.select(".legend-area-title").text(sourceFullName);
+              updateLegend();
+              d3.select(".dropbtn").html(
+                modeOptionText + " <i class='arrow down'></i>"
+              );
+            });
         });
       }
 
