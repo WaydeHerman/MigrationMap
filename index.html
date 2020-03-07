@@ -50,7 +50,9 @@
     </div>
 
     <script>
-      d3.csv("autauga.csv").then(function(data) {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const fips = urlParams.get('f')
         /* columnChartViz({
         el: document.getElementsByClassName("chart")[0],
         data,
@@ -66,13 +68,11 @@
       }); */
         migrationMap({
           el: document.body,
-          fips: "01001",
-          bubbleColor: "#13B1F4",
-          lineColor: "#fffa9e",
+          fips: fips,
           height: "",
           width: ""
         });
-      });
+    
     </script>
   </body>
 </html>

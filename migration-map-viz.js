@@ -460,7 +460,6 @@ function migrationMap(option) {
               var x2 = path.centroid(d)[0];
               var y2 = path.centroid(d)[1];
               var distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
-              console.log(curveScale(distance));
               return (
                 "M" +
                 x2 +
