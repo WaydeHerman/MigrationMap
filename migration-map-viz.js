@@ -93,6 +93,7 @@ function migrationMap(option) {
       var z,
         featureLine,
         featureCircle,
+        featureMask,
         sourcePoint,
         sourceFullName,
         totalsTO,
@@ -182,6 +183,20 @@ function migrationMap(option) {
           .domain([0, d3.max(distance_list)])
           .range([2, 1]);
 
+        featureCircle = g
+          .selectAll(".feature-circle")
+          .data(json_copy.features)
+          .enter()
+          .append("circle")
+          .attr("class", "feature-circle");
+
+        /*featureMask = g
+          .selectAll(".feature-mask")
+          .data(json_copy.features)
+          .enter()
+          .append("mask")
+          .attr("class", "feature-mask");*/
+
         featureLine = g
           .selectAll(".feature-line")
           .data(json_copy.features)
@@ -193,13 +208,6 @@ function migrationMap(option) {
           .data([sourceData])
           .enter()
           .append("circle");
-
-        featureCircle = g
-          .selectAll(".feature-circle")
-          .data(json_copy.features)
-          .enter()
-          .append("circle")
-          .attr("class", "feature-circle");
       }
 
       plot(data, "FROM");
@@ -459,6 +467,7 @@ function migrationMap(option) {
 
         featureCircle
           .attr("fill", bubbleColor)
+          .attr("opacity", 0.6)
           .attr("cx", function(d) {
             return path.centroid(d)[0];
           })
@@ -477,8 +486,29 @@ function migrationMap(option) {
           .on("mouseout", elementMouseOut)
           .on("click", elementclick);
 
+        /* featureMask
+          .attr("id", function(d) {
+            return "fc-" + d.id;
+          })
+          .attr("cx", function(d) {
+            return path.centroid(d)[0];
+          })
+          .attr("cy", function(d) {
+            return path.centroid(d)[1];
+          })
+          .attr("r", function(d) {
+            if (d.properties[mode] > 0) {
+              return Math.abs(z(d.properties[mode]));
+            } else {
+              return 0;
+            }
+          });*/
+
         featureLine
           .attr("class", "feature-line")
+          .style("mask", function(d) {
+            return "url(#fc-" + d.id + ")";
+          })
           .style("stroke", function(d) {
             if (mode === "TO") {
               return lineOutColor;
@@ -863,7 +893,7 @@ function migrationMap(option) {
         if (elementActive === "") {
           featureCircle.style("opacity", function(v) {
             if (d.id === v.id) {
-              return 1;
+              return 0.6;
             } else {
               return 0.4;
             }
@@ -881,7 +911,7 @@ function migrationMap(option) {
 
       function elementMouseOut() {
         if (elementActive === "") {
-          featureCircle.style("opacity", 1);
+          featureCircle.style("opacity", 0.6);
           featureLine.style("opacity", 0.8);
         }
         hideTooltip();
