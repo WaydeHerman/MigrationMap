@@ -33,7 +33,7 @@
 
 .legend-container {
   width: 400px;
-  height: 305px;
+  height: 245px;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1000;
   position: relative;
@@ -183,27 +183,25 @@ i {
   -webkit-transform: rotate(45deg);
 }
 
-.export-option-btn {
-  border-top: 1px solid white;
-  margin-left: 10px;
+.export-option-container {
+  height: 85px;
+  width: 180px;
+  float: right;
   margin-right: 10px;
-  padding: 20px;
-  cursor: pointer;
+  margin-top: 10px;
 }
 
-.export-option-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
-.export-option-btn-label {
+.export-option-title {
   color: white;
+  font-weight: bold;
+  padding-left: 5px;
 }
 
 .export-option {
   color: #2f61a2;
   font-weight: bold;
   cursor: pointer;
-  padding: 10px;
+  padding: 5px;
   padding-bottom: 0px;
 }
 

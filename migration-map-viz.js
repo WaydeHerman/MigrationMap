@@ -93,7 +93,6 @@ function migrationMap(option) {
       var z,
         featureLine,
         featureCircle,
-        featureMask,
         sourcePoint,
         sourceFullName,
         totalsTO,
@@ -277,25 +276,9 @@ function migrationMap(option) {
           }
         });
 
-      var nodeInfoContainer = legendContainer
-        .append("div")
-        .attr("class", "node-info-container")
-        .style("display", "none");
-
-      nodeInfoContainer.append("div").attr("class", "node-info node-info-1");
-      nodeInfoContainer.append("div").attr("class", "node-value node-info-2");
-      nodeInfoContainer.append("div").attr("class", "node-info node-info-3");
-      nodeInfoContainer.append("div").attr("class", "node-value node-info-4");
-      nodeInfoContainer.append("div").attr("class", "node-info node-info-5");
-      nodeInfoContainer.append("div").attr("class", "node-value node-info-6");
-      nodeInfoContainer
-        .append("div")
-        .attr("class", "node-info-link")
-        .attr("id", "node-change");
-
       var legendSVG = legendContainer
         .append("svg")
-        .attr("width", 200)
+        .attr("width", 140)
         .attr("height", 95);
 
       /*legendSVG
@@ -354,37 +337,61 @@ function migrationMap(option) {
           return formatNumber(d);
         });
 
-      var exportOptionBtn = legendContainer
-        .append("div")
-        .attr("class", "export-option-btn");
-
-      exportOptionBtn
-        .append("div")
-        .attr("class", "export-option-btn-label")
-        .text("Export Options");
-
-      exportOptionBtn.append("div").attr("class", "export-option-arrow");
-
       var exportOptionContainer = legendContainer
         .append("div")
-        .attr("class", "export-option-container")
-        .style("display", "none");
+        .attr("class", "export-option-container");
+
+      exportOptionContainer
+        .append("div")
+        .attr("class", "export-option-title")
+        .html("Export Options");
 
       exportOptionContainer
         .append("div")
         .attr("class", "export-option export-option-1")
-        .style("display", "none")
+        .html("Map Link (copy url)")
+        .on("click", function() {
+          var queryString = window.location;
+          const urlRegex = /.+?(?=\?f\=)/;
+
+          window.prompt(
+            "Copy to clipboard: Ctrl+C",
+            urlRegex.exec(queryString) + "/?=" + fips + "&t=" + flowDirection
+          );
+        });
+
+      exportOptionContainer
+        .append("div")
+        .attr("class", "export-option export-option-2")
+        .html("Map Image (.png)")
         .on("click", function() {
           exportPNG();
         });
       exportOptionContainer
         .append("div")
-        .attr("class", "export-option export-option-2")
-        .style("display", "none")
+        .attr("class", "export-option export-option-3")
+        .html("Map Data (.csv)")
         .on("click", function() {
           exportCSV();
         });
 
+      var nodeInfoContainer = legendContainer
+        .append("div")
+        .attr("class", "node-info-container")
+        .style("display", "none");
+
+      nodeInfoContainer.append("div").attr("class", "node-info node-info-1");
+      nodeInfoContainer.append("div").attr("class", "node-value node-info-2");
+      nodeInfoContainer.append("div").attr("class", "node-info node-info-3");
+      nodeInfoContainer.append("div").attr("class", "node-value node-info-4");
+      nodeInfoContainer.append("div").attr("class", "node-info node-info-5");
+      nodeInfoContainer.append("div").attr("class", "node-value node-info-6");
+      nodeInfoContainer
+        .append("div")
+        .attr("class", "node-info-link")
+        .attr("id", "node-change");
+
+      /*
       d3.select(".export-option-btn").on("click", function() {
         if (elementActive === "") {
           if (exportOpen === 0) {
@@ -403,7 +410,7 @@ function migrationMap(option) {
             d3.select(".export-option-container").style("display", "none");
           }
         }
-      });
+      }); */
 
       /* legendSVG
       .append("circle")
@@ -746,7 +753,7 @@ function migrationMap(option) {
         if (d.id === elementActive) {
           elementActive = "";
           elementMouseOut();
-          d3.select(".legend-container").style("height", "305px");
+          d3.select(".legend-container").style("height", "245px");
           d3.select(".node-info-container")
             .style("display", "none")
             .style("height", "0px");
@@ -762,7 +769,7 @@ function migrationMap(option) {
           );
           d3.select(".node-info-container")
             .style("display", "block")
-            .style("height", windowHeight - 410 + "px");
+            .style("height", windowHeight - 600 + "px");
           //
           active_node = d;
           node_info(active_node);
@@ -878,14 +885,10 @@ function migrationMap(option) {
                 modeOptionText + " <i class='arrow down'></i>"
               );
             });
-          d3.select(".export-option-container").style("display", "block");
-          d3.select(".export-option-1")
-            .html("Export map as image")
-            .style("display", "block");
-
-          d3.select(".export-option-2")
-            .html("Export map data")
-            .style("display", "block");
+          /* d3.select(".export-option-container").style("display", "block");
+          d3.select(".export-option-1").style("display", "block");
+          d3.select(".export-option-2").style("display", "block");
+          d3.select(".export-option-3").style("display", "block"); */
         });
       }
 
