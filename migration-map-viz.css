@@ -50,6 +50,7 @@
   top: 20px;
   left: 10px;
   position: relative;
+  padding-bottom: 10px;
 }
 
 .legend-axis {
@@ -63,7 +64,7 @@
   position: relative;
   top: 10px;
   padding: 10px;
-  margin: 20px;
+  margin: 10px;
   border-bottom: 1px solid white;
   border-top: 1px solid white;
 }
@@ -73,6 +74,27 @@
   display: inline-block;
   position: relative;
   left: 10px;
+}
+
+.node-info {
+  color: white;
+  padding: 10px;
+  padding-bottom: 0px;
+}
+
+.node-value {
+  color: white;
+  font-weight: bold;
+  padding: 10px;
+  padding-bottom: 0px;
+}
+
+.node-info-link {
+  color: blue;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 10px;
+  padding-bottom: 0px;
 }
 
 /* Dropdown Button */
@@ -154,8 +176,8 @@ i {
 
 .export-option-container {
   border-top: 1px solid white;
-  margin-left: 20px;
-  margin-right: 20px;
+  margin-left: 10px;
+  margin-right: 10px;
   padding: 20px;
   cursor: pointer;
 }
@@ -179,6 +201,10 @@ i {
   background: rgba(255, 255, 255, 0.95);
   pointer-events: none;
   opacity: 0;
+}
+
+.highlighted {
+  color: #ffcb47;
 }
 
 .chart-tooltip .tooltip-desc,

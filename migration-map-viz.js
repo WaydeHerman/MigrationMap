@@ -4,13 +4,14 @@ function migrationMap(option) {
   const height = option.height;
   const width = option.width || "";
 
-  var mode = "TO";
+  var mode = "FROM";
   const bubbleColor = "#5aaeae";
-  const lineOutColor = "#cdd399";
-  const lineInColor = "#c84d45";
+  const lineOutColor = "#c84d45";
+  const lineInColor = "#cdd399";
   var maxVal = 0;
   var exportOpen = 0;
   var elementActive = "";
+  var active_node;
 
   const container = d3.select(el).classed("migration-map-viz", true);
   container.append("p").attr("id", "map");
@@ -86,6 +87,7 @@ function migrationMap(option) {
             v.properties.FROM += +w["MOVEDOUT"];
             v.properties.NET += +w["MOVEDNET"];
             v.properties.TO += +w["MOVEDOUT"] + +w["MOVEDNET"];
+            v.properties.fullName = w["FULL2_NAME"];
           }
         });
         if (v.id === formatIdToFIPS(fips)) {
@@ -118,7 +120,7 @@ function migrationMap(option) {
 
       var z = d3
         .scaleLinear()
-        .domain([0, maxValTO])
+        .domain([0, maxValFROM])
         .rangeRound([0, 30]);
 
       var featureLine = g
@@ -183,8 +185,8 @@ function migrationMap(option) {
         .html("Out-Flow <i class='arrow down'></i>");
 
       var dropdown_list = [
-        { name: "Out-Flow", mode: "TO" },
-        { name: "In-Flow", mode: "FROM" },
+        { name: "Out-Flow", mode: "FROM" },
+        { name: "In-Flow", mode: "TO" },
         { name: "Net-Flow", mode: "NET" }
       ];
 
@@ -200,9 +202,25 @@ function migrationMap(option) {
           mode = d.mode;
           reset();
           updateLegend();
+          d3.select(".dropbtn").html(d.name + " <i class='arrow down'></i>");
+          node_info(active_node);
         });
 
-      legendContainer.append("div");
+      var nodeInfoContainer = legendContainer
+        .append("div")
+        .attr("class", "node-info-container")
+        .style("display", "none");
+
+      nodeInfoContainer.append("div").attr("class", "node-info node-info-1");
+      nodeInfoContainer.append("div").attr("class", "node-value node-info-2");
+      nodeInfoContainer.append("div").attr("class", "node-info node-info-3");
+      nodeInfoContainer.append("div").attr("class", "node-value node-info-4");
+      nodeInfoContainer.append("div").attr("class", "node-info node-info-5");
+      nodeInfoContainer.append("div").attr("class", "node-value node-info-6");
+      nodeInfoContainer
+        .append("div")
+        .attr("class", "node-info-link")
+        .attr("id", "node-change");
 
       var legendSVG = legendContainer
         .append("svg")
@@ -216,7 +234,7 @@ function migrationMap(option) {
         .attr("y", 225)
         .text("Migration Trends");*/
 
-      var legend_examples = [0.1 * maxValTO, maxValTO / 2, maxValTO];
+      var legend_examples = [0.1 * maxValFROM, maxValFROM / 2, maxValFROM];
 
       legendSVG
         .selectAll(".legend-axis")
@@ -227,10 +245,10 @@ function migrationMap(option) {
         .attr("x1", 50)
         .attr("x2", 105)
         .attr("y1", function(d) {
-          return 55 + z(maxValTO) - 2 * z(d);
+          return 55 + z(maxValFROM) - 2 * z(d);
         })
         .attr("y2", function(d) {
-          return 55 + z(maxValTO) - 2 * z(d);
+          return 55 + z(maxValFROM) - 2 * z(d);
         })
         .attr("dy", 5);
 
@@ -244,7 +262,7 @@ function migrationMap(option) {
         .attr("stroke-width", "2px")
         .attr("cx", 50)
         .attr("cy", function(d, i) {
-          return 55 + z(maxValTO) - z(d);
+          return 55 + z(maxValFROM) - z(d);
         })
         .attr("r", function(d) {
           return z(d);
@@ -258,7 +276,7 @@ function migrationMap(option) {
         .attr("class", "legend-text")
         .attr("x", 110)
         .attr("y", function(d) {
-          return 57 + z(maxValTO) - 2 * z(d);
+          return 57 + z(maxValFROM) - 2 * z(d);
         })
         .attr("dy", 5)
         .text(function(d) {
@@ -277,12 +295,14 @@ function migrationMap(option) {
       exportOptionContainer.append("div").attr("class", "export-option-arrow");
 
       d3.select(".export-option-container").on("click", function() {
-        if (exportOpen === 0) {
-          exportOpen = 1;
-          d3.select(".legend-container").style("height", "400px");
-        } else {
-          exportOpen = 0;
-          d3.select(".legend-container").style("height", "305px");
+        if (elementActive === "") {
+          if (exportOpen === 0) {
+            exportOpen = 1;
+            d3.select(".legend-container").style("height", "400px");
+          } else {
+            exportOpen = 0;
+            d3.select(".legend-container").style("height", "305px");
+          }
         }
       });
 
@@ -548,16 +568,117 @@ function migrationMap(option) {
           elementActive = "";
           elementMouseOut();
           d3.select(".legend-container").style("height", "305px");
+          d3.select(".node-info-container")
+            .style("display", "none")
+            .style("height", "0px");
         } else {
           elementActive = "";
           elementMouseOver(d);
           elementActive = d.id;
+          //
           var windowHeight = window.innerHeight;
           d3.select(".legend-container").style(
             "height",
             windowHeight - 40 + "px"
           );
+          d3.select(".node-info-container")
+            .style("display", "block")
+            .style("height", windowHeight - 440 + "px");
+          //
+          active_node = d;
+          node_info(active_node);
         }
+      }
+
+      function node_info(d) {
+        var nextCountyVar = d.id.slice(-3);
+        var nextStateVar = d.id.slice(0, d.id.length - 3);
+        console.log(nextStateVar.slice(0, 1));
+        if (nextStateVar.slice(0, 1) === "0") {
+          nextStateVar = nextStateVar.slice(1);
+        }
+        console.log("nextCountyVar", nextCountyVar);
+        console.log("nextStateVar", nextStateVar);
+
+        var nextBaseUrl =
+          "https://api.census.gov/data/2017/acs/flows?get=MOVEDIN,GEOID1,GEOID2,MOVEDOUT,FULL1_NAME,FULL2_NAME,MOVEDNET&for=county:" +
+          nextCountyVar +
+          "&in=state:" +
+          nextStateVar +
+          "&key=acabde7bbffe0325b739c46e81e6305110af434e";
+        console.log(nextBaseUrl);
+        d3.csv(nextBaseUrl).then(function(nodeData) {
+          if (mode === "FROM") {
+            var word1 = "From ";
+            var word2 = " to ";
+            var modeOption = "TO";
+            var modeOptionText = " in-flow ";
+          }
+          if (mode === "TO") {
+            var word1 = "To ";
+            var word2 = " from ";
+            var modeOption = "FROM";
+            var modeOptionText = " out-flow ";
+          }
+          if (mode === "NET") {
+            var word1 = " from ";
+            var word2 = " to ";
+            var modeOption = "TO";
+            var modeOptionText = " in-flow ";
+          }
+          var targetTotal = [];
+          nodeData.forEach(function(v) {
+            if (modeOption === "TO") {
+              if (!isNaN(v["MOVEDNET"]) && !isNaN(v["MOVEDOUT"])) {
+                targetTotal.push(+v["MOVEDOUT"] + +v["MOVEDNET"]);
+              }
+            }
+            if (modeOption === "FROM") {
+              if (!isNaN(v["MOVEDOUT"])) {
+                targetTotal.push(+v["MOVEDOUT"]);
+              }
+            }
+          });
+          console.log(targetTotal);
+          console.log(d);
+          d3.select(".node-info-1").html(
+            word1 +
+              "<b>" +
+              sourceFullName +
+              "</b>" +
+              word2 +
+              "<b class='highlighted'>" +
+              d.properties.fullName +
+              "</b>"
+          );
+          d3.select(".node-info-2").html(formatNumber(maxVal));
+          d3.select(".node-info-3").html(
+            "Percentage of total " + word1.toLowerCase() + sourceFullName
+          );
+          d3.select(".node-info-4").html(
+            Math.round((+d.properties[mode] / d3.sum(totals)) * 10000) / 100 +
+              "% (Total: " +
+              d3.sum(totals) +
+              ")"
+          );
+          d3.select(".node-info-5").html(
+            "Percentage of total" +
+              word2.toLowerCase() +
+              "<span class='highlighted'>" +
+              d.properties.fullName +
+              "</span>"
+          );
+          d3.select(".node-info-6").html(
+            Math.round((+d.properties[mode] / d3.sum(targetTotal)) * 10000) /
+              100 +
+              "% (Total: " +
+              d3.sum(targetTotal) +
+              ")"
+          );
+          d3.select("#node-change").html(
+            "See" + modeOptionText + word2.toLowerCase() + d.properties.fullName
+          );
+        });
       }
 
       function elementMouseOver(d) {
