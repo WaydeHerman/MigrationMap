@@ -1,10 +1,28 @@
 function migrationMap(option) {
+  const flowDirections = ["out-flow", "in-flow", "net-flow"];
+
+  // Verify options
+  if (!flowDirections.includes(option.flowDirection)) {
+    throw Error("Calc can only be out-flow, in-flow, or net-flow.");
+  }
+
+  // Extract options
   var fips = option.fips;
+  var flowDirection = option.flowDirection.toLowerCase();
   const el = option.el;
   const height = option.height;
   const width = option.width || "";
 
-  var mode = "FROM";
+  if (flowDirection === "out-flow") {
+    var mode = "FROM";
+  }
+  if (flowDirection === "in-flow") {
+    var mode = "TO";
+  }
+  if (flowDirection === "net-flow") {
+    var mode = "NET";
+  }
+
   const bubbleColor = "#5aaeae";
   const lineOutColor = "#c84d45";
   const lineInColor = "#cdd399";
@@ -225,7 +243,7 @@ function migrationMap(option) {
       d3.select(".dropdown-flow")
         .append("button")
         .attr("class", "dropbtn")
-        .html("Out-Flow <i class='arrow down'></i>");
+        .html(capitalizeFlow(flowDirection) + " <i class='arrow down'></i>");
 
       var dropdown_list = [
         { name: "Out-Flow", mode: "FROM" },
@@ -279,7 +297,7 @@ function migrationMap(option) {
         .attr("y", 225)
         .text("Migration Trends");*/
 
-      var legend_examples = [0.1 * maxValFROM, maxValFROM / 2, maxValFROM];
+      var legend_examples = [0.1 * maxValue, maxValue / 2, maxValue];
 
       legendSVG
         .selectAll(".legend-axis")
@@ -290,10 +308,10 @@ function migrationMap(option) {
         .attr("x1", 50)
         .attr("x2", 105)
         .attr("y1", function(d) {
-          return 55 + z(maxValFROM) - 2 * z(d);
+          return 55 + z(maxValue) - 2 * z(d);
         })
         .attr("y2", function(d) {
-          return 55 + z(maxValFROM) - 2 * z(d);
+          return 55 + z(maxValue) - 2 * z(d);
         })
         .attr("dy", 5);
 
@@ -307,7 +325,7 @@ function migrationMap(option) {
         .attr("stroke-width", "2px")
         .attr("cx", 50)
         .attr("cy", function(d, i) {
-          return 55 + z(maxValFROM) - z(d);
+          return 55 + z(maxValue) - z(d);
         })
         .attr("r", function(d) {
           return z(d);
@@ -321,7 +339,7 @@ function migrationMap(option) {
         .attr("class", "legend-text")
         .attr("x", 110)
         .attr("y", function(d) {
-          return 57 + z(maxValFROM) - 2 * z(d);
+          return 57 + z(maxValue) - 2 * z(d);
         })
         .attr("dy", 5)
         .text(function(d) {
@@ -575,14 +593,29 @@ function migrationMap(option) {
         console.log("test");
 
         domtoimage.toBlob(document.getElementById("map")).then(function(blob) {
-          window.saveAs(blob, "my-node.png");
+          window.saveAs(
+            blob,
+            sourceName.replace(/ /g, "-") +
+              "-" +
+              capitalizeFlow(flowDirection) +
+              ".png"
+          );
         });
+      }
+
+      function capitalizeFlow(string) {
+        var result = string.split("-");
+        return (
+          result[0].charAt(0).toUpperCase() +
+          result[0].slice(1) +
+          "-" +
+          result[1].charAt(0).toUpperCase() +
+          result[1].slice(1)
+        );
       }
 
       function exportCSV() {
         let csvContent = currentData.columns.join(",") + "\r\n";
-
-        console.log(csvContent);
 
         currentData.forEach(function(rowArray) {
           rowList = [];
@@ -593,7 +626,13 @@ function migrationMap(option) {
           csvContent += row + "\r\n";
         });
         var blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        saveAs(blob, "data.csv");
+        saveAs(
+          blob,
+          sourceName.replace(/ /g, "-") +
+            "-" +
+            capitalizeFlow(flowDirection) +
+            ".csv"
+        );
       }
 
       function moveTooltip() {

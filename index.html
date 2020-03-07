@@ -58,6 +58,7 @@
     const queryString = window.location.search;
     const urlParams = new URLSearchParams(queryString);
     const fips = urlParams.get('f')
+    const flowDirection = urlParams.get('t')
         /* columnChartViz({
         el: document.getElementsByClassName("chart")[0],
         data,
@@ -74,6 +75,7 @@
         migrationMap({
           el: document.body,
           fips: fips,
+          flowDirection: flowDirection,
           height: "",
           width: ""
         });
