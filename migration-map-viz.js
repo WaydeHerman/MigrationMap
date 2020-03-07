@@ -221,24 +221,23 @@ function migrationMap(option) {
         .style("top", "20px")
         .style("left", document.getElementById("map").clientWidth - 420 + "px");
 
-      legendContainer
+      var legendHeader = legendContainer
+        .append("div")
+        .attr("class", "legend-header");
+
+      legendHeader
         .append("div")
         .attr("class", "legend-title")
         .text("2012-2017 Migration Trends");
 
-      legendContainer
+      legendHeader
         .append("div")
         .attr("class", "legend-area-title")
         .text(sourceFullName);
 
-      var flowPickerContainer = legendContainer
+      var flowPickerContainer = legendHeader
         .append("div")
         .attr("class", "flow-picker-container");
-
-      flowPickerContainer
-        .append("div")
-        .attr("class", "flow-picker-text")
-        .text("Pick flow type");
 
       flowPickerContainer.append("div").attr("class", "dropdown-flow");
 
@@ -276,8 +275,18 @@ function migrationMap(option) {
           }
         });
 
-      var legendSVG = legendContainer
+      var legendSubHeader = legendContainer
+        .append("div")
+        .attr("class", "legend-sub-header");
+
+      var exportOptionContainer = legendSubHeader
+        .append("div")
+        .attr("class", "export-option-container");
+
+      var legendSVG = legendSubHeader
         .append("svg")
+        .style("top", "-85px")
+        .style("position", "relative")
         .attr("width", 140)
         .attr("height", 95);
 
@@ -336,10 +345,6 @@ function migrationMap(option) {
         .text(function(d) {
           return formatNumber(d);
         });
-
-      var exportOptionContainer = legendContainer
-        .append("div")
-        .attr("class", "export-option-container");
 
       exportOptionContainer
         .append("div")
@@ -784,7 +789,7 @@ function migrationMap(option) {
         if (d.id === elementActive) {
           elementActive = "";
           elementMouseOut();
-          d3.select(".legend-container").style("height", "245px");
+          d3.select(".legend-container").style("height", "200px");
           d3.select(".node-info-container")
             .style("display", "none")
             .style("height", "0px");
@@ -906,7 +911,7 @@ function migrationMap(option) {
               plot(nodeData, modeOption);
               reset();
               elementMouseOut();
-              d3.select(".legend-container").style("height", "305px");
+              d3.select(".legend-container").style("height", "200px");
               d3.select(".node-info-container")
                 .style("display", "none")
                 .style("height", "0px");
