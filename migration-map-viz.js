@@ -182,6 +182,12 @@ function migrationMap(option) {
           .domain([0, d3.max(distance_list)])
           .range([2, 1]);
 
+        featureLine = g
+          .selectAll(".feature-line")
+          .data(json_copy.features)
+          .enter()
+          .append("path");
+
         featureCircle = g
           .selectAll(".feature-circle")
           .data(json_copy.features)
@@ -195,12 +201,6 @@ function migrationMap(option) {
           .enter()
           .append("mask")
           .attr("class", "feature-mask");*/
-
-        featureLine = g
-          .selectAll(".feature-line")
-          .data(json_copy.features)
-          .enter()
-          .append("path");
 
         sourcePoint = g
           .selectAll(".source")
@@ -455,14 +455,17 @@ function migrationMap(option) {
         if (mode === "TO") {
           maxVal = maxValTO;
           totals = totalsTO;
+          flowDirection = "in-flow";
         }
         if (mode === "FROM") {
           maxVal = maxValFROM;
           totals = totalsFROM;
+          flowDirection = "out-flow";
         }
         if (mode === "NET") {
           maxVal = maxValNET;
           totals = totalsNET;
+          flowDirection = "net-flow";
         }
 
         var z = d3
@@ -474,7 +477,7 @@ function migrationMap(option) {
 
         featureCircle
           .attr("fill", bubbleColor)
-          .attr("opacity", 0.6)
+          .attr("opacity", 1)
           .attr("cx", function(d) {
             return path.centroid(d)[0];
           })
@@ -549,10 +552,28 @@ function migrationMap(option) {
           .style("opacity", 0.8)
           .attr("d", function(d, i) {
             if (d[mode] != 0) {
+              if (d.properties[mode] > 0) {
+                var r = Math.abs(z(d.properties[mode]));
+              } else {
+                var r = 0;
+              }
               var x1 = path.centroid(sourceData)[0];
               var y1 = path.centroid(sourceData)[1];
               var x2 = path.centroid(d)[0];
               var y2 = path.centroid(d)[1];
+              /* var angle = Math.atan((y2 - y1) / (x2 - x1));
+              var xDiff = r * Math.sin(angle);
+              var yDiff = r * Math.cos(angle);
+              if (x1 < x2) {
+                x2 = x2 - (r + xDiff);
+              } else {
+                x2 = x2 + (r - xDiff);
+              }
+              if (y1 < y2) {
+                y2 = y2 - (r + yDiff);
+              } else {
+                y2 = y2 + (r - yDiff);
+              } */
               var distance = Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
               return (
                 "M" +
@@ -652,12 +673,22 @@ function migrationMap(option) {
       }
 
       function exportCSV() {
-        let csvContent = currentData.columns.join(",") + "\r\n";
+        let csvContent = "";
+        currentData.columns.forEach(function(v, i) {
+          if (i < 9) {
+            csvContent += cleanCSVContent(v) + ",";
+          }
+        });
+        csvContent += "\r\n";
+        console.log(csvContent);
 
         currentData.forEach(function(rowArray) {
           rowList = [];
-          currentData.columns.forEach(function(v) {
-            rowList.push(rowArray[v]);
+          currentData.columns.forEach(function(v, i) {
+            if (v != "") {
+              console.log(v, rowArray[v]);
+              rowList.push(cleanCSVContent(rowArray[v]));
+            }
           });
           let row = rowList.join(",");
           csvContent += row + "\r\n";
@@ -896,7 +927,7 @@ function migrationMap(option) {
         if (elementActive === "") {
           featureCircle.style("opacity", function(v) {
             if (d.id === v.id) {
-              return 0.6;
+              return 1;
             } else {
               return 0.4;
             }
@@ -914,7 +945,7 @@ function migrationMap(option) {
 
       function elementMouseOut() {
         if (elementActive === "") {
-          featureCircle.style("opacity", 0.6);
+          featureCircle.style("opacity", 1);
           featureLine.style("opacity", 0.8);
         }
         hideTooltip();
@@ -924,6 +955,14 @@ function migrationMap(option) {
       // code here
     });
   });
+
+  function cleanCSVContent(string) {
+    string = string
+      .replace(/\[/g, "")
+      .replace(/"/g, "")
+      .replace(/,/g, '","');
+    return string;
+  }
 
   //
   function formatIdToFIPS(d) {
