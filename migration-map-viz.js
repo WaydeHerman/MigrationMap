@@ -31,6 +31,7 @@ function migrationMap(option) {
   var elementActive = "";
   var active_node;
   var nodeInfoOpen = 1;
+  var statsOpen = 1;
 
   const container = d3.select(el).classed("migration-map-viz", true);
   container.append("p").attr("id", "map");
@@ -340,9 +341,13 @@ function migrationMap(option) {
         .select("#map")
         .append("div")
         .attr("class", "legend-container")
+        .attr("id", "legend-container")
         .style("top", "20px")
         .style("left", document.getElementById("map").clientWidth - 420 + "px")
         .style("height", window.innerHeight - 40 + "px");
+
+      var noScrollTarget = document.getElementById("legend-container");
+      L.DomEvent.disableScrollPropagation(noScrollTarget);
 
       var legendHeader = legendContainer
         .append("div")
@@ -516,11 +521,25 @@ function migrationMap(option) {
       statsContainer
         .append("div")
         .attr("class", "stats-toggle")
-        .text("C");
+        .text("C")
+        .on("click", function() {
+          if (statsOpen === 1) {
+            statsOpen = 0;
+            barSVG.style("display", "none");
+            d3.select(".stats-toggle").text("U");
+          } else {
+            statsOpen = 1;
+            barSVG.style("display", "block");
+            d3.select(".stats-toggle").text("C");
+          }
+        });
 
       var barContainer = statsContainer
         .append("div")
-        .attr("class", "stats-bar-container");
+        .attr("class", "stats-bar-container")
+        .on("scroll.scroller", function() {
+          console.log("test");
+        });
 
       barSVG = barContainer.append("svg").attr("width", 380);
 
@@ -825,7 +844,7 @@ function migrationMap(option) {
       tooltip.append("div").attr("class", "tooltip-total");
       tooltip.append("div").attr("class", "tooltip-percentage");
 
-      function updateStats() {
+      function updateStats(drillCounty) {
         barSVG.selectAll("*").remove();
         if (mode === "TO") {
           statsData = toNest;
@@ -835,6 +854,13 @@ function migrationMap(option) {
         }
         if (mode === "NET") {
           statsData = netNest;
+        }
+        if (drillCounty != "") {
+          statsData.forEach(function(w) {
+            if (w.key === drillCounty) {
+              statsData = w.values;
+            }
+          });
         }
 
         statsHeight = 40 + (5 + 20) * statsData.length;
@@ -867,7 +893,10 @@ function migrationMap(option) {
           .attr("width", function(d) {
             return barScale(Math.abs(d.value));
           })
-          .attr("height", 20);
+          .attr("height", 20)
+          .on("click", function(d) {
+            updateStats(d.key);
+          });
 
         barSVG
           .selectAll(".bar-label")
@@ -1030,7 +1059,22 @@ function migrationMap(option) {
       }
 
       function showTooltip(d) {
-        var tt_desc = "Flow from " + d.properties.name + " to " + sourceName;
+        if (mode === "FROM") {
+          var word1 = " from ";
+          var word2 = " to ";
+          var word0 = "Flow";
+        }
+        if (mode === "TO") {
+          var word1 = " to ";
+          var word2 = " from ";
+          var word0 = "Flow";
+        }
+        if (mode === "NET") {
+          var word1 = " from ";
+          var word2 = " to ";
+          var word0 = "Net Flow";
+        }
+        var tt_desc = word0 + word1 + sourceName + word2 + d.properties.name;
         var tt_total = formatNumber(+d.properties[mode]) + " people";
         var tt_perc =
           Math.round((+d.properties[mode] / d3.sum(totals)) * 10000) / 100 +

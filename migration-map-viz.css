@@ -52,7 +52,7 @@
   max-height: 200px;
   width: 380px;
   margin: 10px;
-  overflow: hidden;
+  overflow: scroll;
 }
 
 .bar-label-value {
