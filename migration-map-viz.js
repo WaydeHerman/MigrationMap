@@ -946,6 +946,14 @@ function migrationMap(option) {
           })
           .text(function(d) {
             return d.key;
+          })
+          .style("cursor", "pointer")
+          .on("click", function(d) {
+            if (drillCounty === "") {
+              updateStats(d.key);
+            } else {
+              updateStats("");
+            }
           });
 
         barSVG
