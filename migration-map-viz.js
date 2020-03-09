@@ -183,7 +183,11 @@ function migrationMap(option) {
         toNest = d3
           .nest()
           .key(function(d) {
-            return d["FULL2_NAME"].split(",")[1].slice(1);
+            if (d["FULL2_NAME"].split(",").length === 2) {
+              return d["FULL2_NAME"].split(",")[1].slice(1);
+            } else {
+              return d["FULL2_NAME"].split(",")[2].slice(1);
+            }
           })
           .rollup(function(v) {
             var totalTo = d3.sum(v, function(d) {
@@ -193,7 +197,11 @@ function migrationMap(option) {
             return totalTo;
           })
           .key(function(d) {
-            return d["FULL2_NAME"].split(",")[0];
+            if (d["FULL2_NAME"].split(",").length === 2) {
+              return d["FULL2_NAME"].split(",")[0];
+            } else {
+              return d["FULL2_NAME"].split(",")[1].slice(1);
+            }
           })
           .entries(
             data.filter(function(d) {
@@ -218,10 +226,16 @@ function migrationMap(option) {
           return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
         });
 
+        console.log("data", data);
+
         fromNest = d3
           .nest()
           .key(function(d) {
-            return d["FULL2_NAME"].split(",")[1].slice(1);
+            if (d["FULL2_NAME"].split(",").length === 2) {
+              return d["FULL2_NAME"].split(",")[1].slice(1);
+            } else {
+              return d["FULL2_NAME"].split(",")[2].slice(1);
+            }
           })
           .rollup(function(v) {
             var totalTo = d3.sum(v, function(d) {
@@ -231,7 +245,11 @@ function migrationMap(option) {
             return totalTo;
           })
           .key(function(d) {
-            return d["FULL2_NAME"].split(",")[0];
+            if (d["FULL2_NAME"].split(",").length === 2) {
+              return d["FULL2_NAME"].split(",")[0];
+            } else {
+              return d["FULL2_NAME"].split(",")[1].slice(1);
+            }
           })
           .entries(
             data.filter(function(d) {
@@ -259,7 +277,11 @@ function migrationMap(option) {
         netNest = d3
           .nest()
           .key(function(d) {
-            return d["FULL2_NAME"].split(",")[1].slice(1);
+            if (d["FULL2_NAME"].split(",").length === 2) {
+              return d["FULL2_NAME"].split(",")[1].slice(1);
+            } else {
+              return d["FULL2_NAME"].split(",")[2].slice(1);
+            }
           })
           .rollup(function(v) {
             var totalTo = d3.sum(v, function(d) {
@@ -269,7 +291,11 @@ function migrationMap(option) {
             return totalTo;
           })
           .key(function(d) {
-            return d["FULL2_NAME"].split(",")[0];
+            if (d["FULL2_NAME"].split(",").length === 2) {
+              return d["FULL2_NAME"].split(",")[0];
+            } else {
+              return d["FULL2_NAME"].split(",")[1].slice(1);
+            }
           })
           .entries(
             data.filter(function(d) {
