@@ -863,7 +863,7 @@ function migrationMap(option) {
           });
         }
 
-        statsHeight = 40 + (5 + 20) * statsData.length;
+        statsHeight = 20 + (5 + 20) * statsData.length;
         barSVG.attr("height", statsHeight);
 
         maxBar = d3.max(statsData, function(d) {
