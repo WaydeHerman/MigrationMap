@@ -56,6 +56,27 @@
   overflow-y: scroll;
 }
 
+/* width */
+.stats-bar-container::-webkit-scrollbar {
+  width: 10px;
+  left: 10px;
+}
+
+/* Track */
+.stats-bar-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+.stats-bar-container::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+.stats-bar-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
 .stats-label-drill {
   color: white;
   top: 15px;

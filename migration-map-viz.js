@@ -80,7 +80,7 @@ function migrationMap(option) {
   var stateVar = fips.slice(0, fips.length - 3);
 
   var baseUrl =
-    "https://api.census.gov/data/2017/acs/flows?get=MOVEDIN,GEOID1,GEOID2,MOVEDOUT,FULL1_NAME,FULL2_NAME,MOVEDNET&for=county:" +
+    "https://api.census.gov/data/2017/acs/flows?get=MOVEDIN,GEOID1,GEOID2,MOVEDOUT,FULL1_NAME,FULL2_NAME,MOVEDNET,STATE2_NAME,COUNTY2_NAME&for=county:" +
     countyVar +
     "&in=state:" +
     stateVar +
@@ -183,11 +183,7 @@ function migrationMap(option) {
         toNest = d3
           .nest()
           .key(function(d) {
-            if (d["FULL2_NAME"].split(",").length === 2) {
-              return d["FULL2_NAME"].split(",")[1].slice(1);
-            } else {
-              return d["FULL2_NAME"].split(",")[2].slice(1);
-            }
+            return d["STATE2_NAME"];
           })
           .rollup(function(v) {
             var totalTo = d3.sum(v, function(d) {
@@ -197,11 +193,7 @@ function migrationMap(option) {
             return totalTo;
           })
           .key(function(d) {
-            if (d["FULL2_NAME"].split(",").length === 2) {
-              return d["FULL2_NAME"].split(",")[0];
-            } else {
-              return d["FULL2_NAME"].split(",")[1].slice(1);
-            }
+            return d["COUNTY2_NAME"];
           })
           .entries(
             data.filter(function(d) {
@@ -231,11 +223,7 @@ function migrationMap(option) {
         fromNest = d3
           .nest()
           .key(function(d) {
-            if (d["FULL2_NAME"].split(",").length === 2) {
-              return d["FULL2_NAME"].split(",")[1].slice(1);
-            } else {
-              return d["FULL2_NAME"].split(",")[2].slice(1);
-            }
+            return d["STATE2_NAME"];
           })
           .rollup(function(v) {
             var totalTo = d3.sum(v, function(d) {
@@ -245,11 +233,7 @@ function migrationMap(option) {
             return totalTo;
           })
           .key(function(d) {
-            if (d["FULL2_NAME"].split(",").length === 2) {
-              return d["FULL2_NAME"].split(",")[0];
-            } else {
-              return d["FULL2_NAME"].split(",")[1].slice(1);
-            }
+            return d["COUNTY2_NAME"];
           })
           .entries(
             data.filter(function(d) {
@@ -277,11 +261,7 @@ function migrationMap(option) {
         netNest = d3
           .nest()
           .key(function(d) {
-            if (d["FULL2_NAME"].split(",").length === 2) {
-              return d["FULL2_NAME"].split(",")[1].slice(1);
-            } else {
-              return d["FULL2_NAME"].split(",")[2].slice(1);
-            }
+            return d["STATE2_NAME"];
           })
           .rollup(function(v) {
             var totalTo = d3.sum(v, function(d) {
@@ -291,11 +271,7 @@ function migrationMap(option) {
             return totalTo;
           })
           .key(function(d) {
-            if (d["FULL2_NAME"].split(",").length === 2) {
-              return d["FULL2_NAME"].split(",")[0];
-            } else {
-              return d["FULL2_NAME"].split(",")[1].slice(1);
-            }
+            return d["COUNTY2_NAME"];
           })
           .entries(
             data.filter(function(d) {
