@@ -54,6 +54,7 @@
   width: 380px;
   margin: 10px;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* width */

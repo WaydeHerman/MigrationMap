@@ -558,7 +558,7 @@ function migrationMap(option) {
           console.log("test");
         });
 
-      barSVG = barContainer.append("svg").attr("width", 380);
+      barSVG = barContainer.append("svg").attr("width", 370);
 
       var nodeInfoContainer = legendContainer
         .append("div")
@@ -970,7 +970,7 @@ function migrationMap(option) {
           .append("text")
           .attr("class", "bar-label-perc")
           .attr("x", function(d) {
-            return 330;
+            return 320;
           })
           .attr("y", function(d, i) {
             return i * 25 + 15;
