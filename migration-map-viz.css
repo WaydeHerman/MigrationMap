@@ -134,7 +134,7 @@
 .legend-area-title {
   color: white;
   font-size: 1.2em;
-  top: 30px;
+  top: 15px;
   left: 10px;
   position: relative;
   padding-bottom: 10px;
@@ -202,13 +202,13 @@
 .dropbtn {
   background-color: transparent;
   border: 1px solid #747474;
-  color: white;
-  padding: 10px;
-  font-weight: bold;
-  font-size: 10px;
+  color: #a2a2a2;
+  padding: 5px;
+  padding-left: 10px;
+  font-size: 14px;
   cursor: pointer;
-  min-width: 160px;
-  text-anchor: middle;
+  min-width: 140px;
+  text-align: left;
 }
 
 /* The container <div> - needed to position the dropdown content */
@@ -216,9 +216,9 @@
   margin: auto;
   position: relative;
   float: right;
-  top: -40px;
+  top: -75px;
+  left: 20px;
   display: inline-block;
-  text-anchor: middle;
   min-width: 160px;
 }
 
@@ -226,26 +226,28 @@
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: #f1f1f1;
-  font-weight: bold;
-  min-width: 160px;
+  background-color: #171717;
+  font-size: 14px;
+  min-width: 140px;
   z-index: 1;
   max-height: 530px;
   overflow: auto;
-  text-anchor: middle;
-  top: 34px;
+  top: 28px;
+}
+
+.dropbtn-icon {
+  border: none;
+  margin-left: 40px;
 }
 
 /* Links inside the dropdown */
 .dropdown-content a {
-  color: #404e4d;
-  font-size: 10px;
-  font-weight: bold;
+  color: #a2a2a2 !important;
+  font-size: 14px;
   padding: 3px 0px;
+  padding-left: 10px;
   text-decoration: none;
   display: block;
-  text-anchor: middle;
-  text-align: center;
 }
 
 /* Change color of dropdown links on hover */

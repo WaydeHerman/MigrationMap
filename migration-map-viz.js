@@ -380,7 +380,10 @@ function migrationMap(option) {
       d3.select(".dropdown-flow")
         .append("button")
         .attr("class", "dropbtn")
-        .html(capitalizeFlow(flowDirection) + " <i class='arrow down'></i>");
+        .html(
+          capitalizeFlow(flowDirection) +
+            " <i class='fas dropbtn-icon fa-chevron-down'></i>"
+        );
 
       var dropdown_list = [
         { name: "Out-Flow", mode: "FROM" },
@@ -1259,7 +1262,8 @@ function migrationMap(option) {
               updateLegend();
               updateStats("");
               d3.select(".dropbtn").html(
-                modeOptionText + " <i class='arrow down'></i>"
+                modeOptionText +
+                  " <i class='fas dropbtn-icon fa-chevron-down'></i>"
               );
             });
           /* d3.select(".export-option-container").style("display", "block");
