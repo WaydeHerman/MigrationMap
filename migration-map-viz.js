@@ -930,7 +930,7 @@ function migrationMap(option) {
         barScale = d3
           .scaleLinear()
           .domain([0, maxBar])
-          .range([0, 180]);
+          .range([0, 170]);
 
         barSVG
           .selectAll(".bars")
@@ -939,7 +939,7 @@ function migrationMap(option) {
           .append("rect")
           .attr("fill", bubbleColor)
           .style("cursor", "pointer")
-          .attr("x", 130)
+          .attr("x", 140)
           .attr("y", function(d, i) {
             return i * 25;
           })
@@ -961,7 +961,7 @@ function migrationMap(option) {
           .enter()
           .append("text")
           .attr("class", "bar-label")
-          .attr("x", 10)
+          .attr("x", 0)
           .attr("y", function(d, i) {
             return i * 25 + 15;
           })
@@ -976,7 +976,7 @@ function migrationMap(option) {
           .append("text")
           .attr("class", "bar-label-value")
           .attr("x", function(d) {
-            return 120 + barScale(Math.abs(d.value));
+            return 130 + barScale(Math.abs(d.value));
           })
           .attr("y", function(d, i) {
             return i * 25 + 15;
