@@ -30,6 +30,7 @@ function migrationMap(option) {
   var exportOpen = 0;
   var elementActive = "";
   var active_node;
+  var nodeInfoOpen = 1;
 
   const container = d3.select(el).classed("migration-map-viz", true);
   container.append("p").attr("id", "map");
@@ -103,7 +104,11 @@ function migrationMap(option) {
         maxValTO,
         maxValFROM,
         maxValNET,
-        currentData;
+        currentData,
+        toNest,
+        fromNest,
+        netNest,
+        barSVG;
 
       function plot(data, type) {
         currentData = data;
@@ -172,6 +177,123 @@ function migrationMap(option) {
         console.log("sourceName", sourceName);
         console.log("sourceFullName", sourceFullName);
 
+        // Bar Chart data:
+        toNest = d3
+          .nest()
+          .key(function(d) {
+            return d["FULL2_NAME"].split(",")[1].slice(1);
+          })
+          .rollup(function(v) {
+            var totalTo = d3.sum(v, function(d) {
+              return +d["MOVEDOUT"] + +d["MOVEDNET"];
+            });
+            v.total = totalTo;
+            return totalTo;
+          })
+          .key(function(d) {
+            return d["FULL2_NAME"].split(",")[0];
+          })
+          .entries(
+            data.filter(function(d) {
+              return d["GEOID2"] != "null";
+            })
+          );
+
+        toNest.forEach(function(v) {
+          v.values.sort(function(a, b) {
+            var valA = a.value;
+            var valB = b.value;
+            return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+          });
+          v.value = d3.sum(v.values, function(w) {
+            return w.value;
+          });
+        });
+
+        toNest.sort(function(a, b) {
+          var valA = a.value;
+          var valB = b.value;
+          return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+        });
+
+        fromNest = d3
+          .nest()
+          .key(function(d) {
+            return d["FULL2_NAME"].split(",")[1].slice(1);
+          })
+          .rollup(function(v) {
+            var totalTo = d3.sum(v, function(d) {
+              return +d["MOVEDOUT"];
+            });
+            v.total = totalTo;
+            return totalTo;
+          })
+          .key(function(d) {
+            return d["FULL2_NAME"].split(",")[0];
+          })
+          .entries(
+            data.filter(function(d) {
+              return d["GEOID2"] != "null";
+            })
+          );
+
+        fromNest.forEach(function(v) {
+          v.values.sort(function(a, b) {
+            var valA = a.value;
+            var valB = b.value;
+            return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+          });
+          v.value = d3.sum(v.values, function(w) {
+            return w.value;
+          });
+        });
+
+        fromNest.sort(function(a, b) {
+          var valA = a.value;
+          var valB = b.value;
+          return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+        });
+
+        netNest = d3
+          .nest()
+          .key(function(d) {
+            return d["FULL2_NAME"].split(",")[1].slice(1);
+          })
+          .rollup(function(v) {
+            var totalTo = d3.sum(v, function(d) {
+              return +d["MOVEDNET"];
+            });
+            v.total = totalTo;
+            return totalTo;
+          })
+          .key(function(d) {
+            return d["FULL2_NAME"].split(",")[0];
+          })
+          .entries(
+            data.filter(function(d) {
+              return d["GEOID2"] != "null";
+            })
+          );
+
+        netNest.forEach(function(v) {
+          v.values.sort(function(a, b) {
+            var valA = a.value;
+            var valB = b.value;
+            return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+          });
+          v.value = d3.sum(v.values, function(w) {
+            return w.value;
+          });
+        });
+
+        netNest.sort(function(a, b) {
+          var valA = a.value;
+          var valB = b.value;
+          return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+        });
+
+        console.log("netNest", netNest);
+
         z = d3
           .scaleLinear()
           .domain([0, maxValue])
@@ -219,7 +341,8 @@ function migrationMap(option) {
         .append("div")
         .attr("class", "legend-container")
         .style("top", "20px")
-        .style("left", document.getElementById("map").clientWidth - 420 + "px");
+        .style("left", document.getElementById("map").clientWidth - 420 + "px")
+        .style("height", window.innerHeight - 40 + "px");
 
       var legendHeader = legendContainer
         .append("div")
@@ -269,6 +392,7 @@ function migrationMap(option) {
           mode = d.mode;
           reset();
           updateLegend();
+          updateStats();
           d3.select(".dropbtn").html(d.name + " <i class='arrow down'></i>");
           if (elementActive !== "") {
             node_info(active_node);
@@ -380,10 +504,58 @@ function migrationMap(option) {
           exportCSV();
         });
 
+      var statsContainer = legendContainer
+        .append("div")
+        .attr("class", "stats-container");
+
+      statsContainer
+        .append("div")
+        .attr("class", "stats-label")
+        .text("Stats");
+
+      statsContainer
+        .append("div")
+        .attr("class", "stats-toggle")
+        .text("C");
+
+      var barContainer = statsContainer
+        .append("div")
+        .attr("class", "stats-bar-container");
+
+      barSVG = barContainer.append("svg").attr("width", 380);
+
       var nodeInfoContainer = legendContainer
         .append("div")
         .attr("class", "node-info-container")
         .style("display", "none");
+
+      nodeInfoContainer
+        .append("div")
+        .attr("class", "node-info-toggle")
+        .text("C")
+        .on("click", function() {
+          if (nodeInfoOpen === 1) {
+            nodeInfoOpen = 0;
+            d3.select(this).text("U");
+            d3.select(".node-info-1").style("display", "none");
+            d3.select(".node-info-2").style("display", "none");
+            d3.select(".node-info-3").style("display", "none");
+            d3.select(".node-info-4").style("display", "none");
+            d3.select(".node-info-5").style("display", "none");
+            d3.select(".node-info-6").style("display", "none");
+            d3.select(".node-info-link").style("display", "none");
+          } else {
+            nodeInfoOpen = 1;
+            d3.select(this).text("C");
+            d3.select(".node-info-1").style("display", "block");
+            d3.select(".node-info-2").style("display", "block");
+            d3.select(".node-info-3").style("display", "block");
+            d3.select(".node-info-4").style("display", "block");
+            d3.select(".node-info-5").style("display", "block");
+            d3.select(".node-info-6").style("display", "block");
+            d3.select(".node-info-link").style("display", "block");
+          }
+        });
 
       nodeInfoContainer.append("div").attr("class", "node-info node-info-1");
       nodeInfoContainer.append("div").attr("class", "node-value node-info-2");
@@ -396,6 +568,7 @@ function migrationMap(option) {
         .attr("class", "node-info-link")
         .attr("id", "node-change");
 
+      updateStats();
       /*
       d3.select(".export-option-btn").on("click", function() {
         if (elementActive === "") {
@@ -652,9 +825,100 @@ function migrationMap(option) {
       tooltip.append("div").attr("class", "tooltip-total");
       tooltip.append("div").attr("class", "tooltip-percentage");
 
-      function exportPNG() {
-        console.log("test");
+      function updateStats() {
+        barSVG.selectAll("*").remove();
+        if (mode === "TO") {
+          statsData = toNest;
+        }
+        if (mode === "FROM") {
+          statsData = fromNest;
+        }
+        if (mode === "NET") {
+          statsData = netNest;
+        }
 
+        statsHeight = 40 + (5 + 20) * statsData.length;
+        barSVG.attr("height", statsHeight);
+
+        maxBar = d3.max(statsData, function(d) {
+          return Math.abs(d.value);
+        });
+
+        sumBar = d3.sum(statsData, function(d) {
+          return Math.abs(d.value);
+        });
+
+        barScale = d3
+          .scaleLinear()
+          .domain([0, maxBar])
+          .range([0, 180]);
+
+        barSVG
+          .selectAll(".bars")
+          .data(statsData)
+          .enter()
+          .append("rect")
+          .attr("fill", bubbleColor)
+          .style("cursor", "pointer")
+          .attr("x", 130)
+          .attr("y", function(d, i) {
+            return i * 25;
+          })
+          .attr("width", function(d) {
+            return barScale(Math.abs(d.value));
+          })
+          .attr("height", 20);
+
+        barSVG
+          .selectAll(".bar-label")
+          .data(statsData)
+          .enter()
+          .append("text")
+          .attr("class", "bar-label")
+          .attr("x", 10)
+          .attr("y", function(d, i) {
+            return i * 25 + 15;
+          })
+          .text(function(d) {
+            return d.key;
+          });
+
+        barSVG
+          .selectAll(".bar-label-value")
+          .data(statsData)
+          .enter()
+          .append("text")
+          .attr("class", "bar-label-value")
+          .attr("x", function(d) {
+            return 120 + barScale(Math.abs(d.value));
+          })
+          .attr("y", function(d, i) {
+            return i * 25 + 15;
+          })
+          .text(function(d) {
+            if (barScale(d.value) > 60) {
+              return formatNumber(Math.abs(d.value));
+            }
+          });
+
+        barSVG
+          .selectAll(".bar-label-perc")
+          .data(statsData)
+          .enter()
+          .append("text")
+          .attr("class", "bar-label-perc")
+          .attr("x", function(d) {
+            return 330;
+          })
+          .attr("y", function(d, i) {
+            return i * 25 + 15;
+          })
+          .text(function(d) {
+            return Math.round((Math.abs(d.value) / sumBar) * 10000) / 100 + "%";
+          });
+      }
+
+      function exportPNG() {
         domtoimage.toBlob(document.getElementById("map")).then(function(blob) {
           window.saveAs(
             blob,
@@ -789,7 +1053,6 @@ function migrationMap(option) {
         if (d.id === elementActive) {
           elementActive = "";
           elementMouseOut();
-          d3.select(".legend-container").style("height", "200px");
           d3.select(".node-info-container")
             .style("display", "none")
             .style("height", "0px");
@@ -798,14 +1061,9 @@ function migrationMap(option) {
           elementMouseOver(d);
           elementActive = d.id;
           //
-          var windowHeight = window.innerHeight;
-          d3.select(".legend-container").style(
-            "height",
-            windowHeight - 40 + "px"
-          );
           d3.select(".node-info-container")
             .style("display", "block")
-            .style("height", windowHeight - 600 + "px");
+            .style("height", window.innerHeight - 600 + "px");
           //
           active_node = d;
           node_info(active_node);
@@ -911,12 +1169,13 @@ function migrationMap(option) {
               plot(nodeData, modeOption);
               reset();
               elementMouseOut();
-              d3.select(".legend-container").style("height", "200px");
+              //d3.select(".legend-container").style("height", "200px");
               d3.select(".node-info-container")
                 .style("display", "none")
                 .style("height", "0px");
               d3.select(".legend-area-title").text(sourceFullName);
               updateLegend();
+              updateStats();
               d3.select(".dropbtn").html(
                 modeOptionText + " <i class='arrow down'></i>"
               );

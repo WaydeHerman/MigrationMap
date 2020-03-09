@@ -31,9 +31,43 @@
   height: 100vh;
 }
 
+.stats-label {
+  color: white;
+  font-size: 1.2em;
+  top: 10px;
+  left: 10px;
+  position: relative;
+}
+
+.stats-toggle {
+  color: white;
+  font-size: 1.2em;
+  top: -10px;
+  left: 380px;
+  position: relative;
+  cursor: pointer;
+}
+
+.stats-bar-container {
+  max-height: 200px;
+  width: 380px;
+  margin: 10px;
+  overflow: hidden;
+}
+
+.bar-label-value {
+  fill: white;
+  text-anchor: end;
+  font-weight: bold;
+}
+.bar-label-perc,
+.bar-label {
+  fill: white;
+  font-weight: bold;
+}
+
 .legend-container {
   width: 400px;
-  height: 200px;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 1000;
   position: relative;
@@ -92,6 +126,10 @@
   left: 10px;
 }
 
+.node-info-container {
+  border-top: 1px solid white;
+}
+
 .node-info {
   color: white;
   padding: 10px;
@@ -111,6 +149,15 @@
   cursor: pointer;
   padding: 10px;
   padding-bottom: 0px;
+}
+
+.node-info-toggle {
+  color: white;
+  top: 5px;
+  position: relative;
+  left: 380px;
+  cursor: pointer;
+  display: inline-block;
 }
 
 /* Dropdown Button */
