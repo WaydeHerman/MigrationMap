@@ -43,9 +43,10 @@
   color: white;
   font-size: 1.2em;
   top: -10px;
-  left: 380px;
+  left: 360px;
   position: relative;
   cursor: pointer;
+  border: none;
 }
 
 .stats-bar-container {
@@ -53,6 +54,14 @@
   width: 380px;
   margin: 10px;
   overflow: scroll;
+}
+
+.stats-label-drill {
+  color: white;
+  top: 15px;
+  position: relative;
+  left: 10px;
+  font-size: 1.2em;
 }
 
 .bar-label-value {
@@ -153,11 +162,13 @@
 
 .node-info-toggle {
   color: white;
-  top: 5px;
+  top: 10px;
   position: relative;
-  left: 380px;
+  left: 360px;
   cursor: pointer;
   display: inline-block;
+  border: none;
+  font-size: 1.2em;
 }
 
 /* Dropdown Button */

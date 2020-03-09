@@ -32,6 +32,7 @@ function migrationMap(option) {
   var active_node;
   var nodeInfoOpen = 1;
   var statsOpen = 1;
+  var drillCounty = "";
 
   const container = d3.select(el).classed("migration-map-viz", true);
   container.append("p").attr("id", "map");
@@ -397,7 +398,7 @@ function migrationMap(option) {
           mode = d.mode;
           reset();
           updateLegend();
-          updateStats();
+          updateStats("");
           d3.select(".dropbtn").html(d.name + " <i class='arrow down'></i>");
           if (elementActive !== "") {
             node_info(active_node);
@@ -520,17 +521,31 @@ function migrationMap(option) {
 
       statsContainer
         .append("div")
-        .attr("class", "stats-toggle")
-        .text("C")
+        .attr("class", "stats-label-drill")
+        .html("")
+        .style("display", "none")
+        .on("click", function() {
+          updateStats("");
+        });
+
+      statsContainer
+        .append("div")
+        .html("<i class='fas stats-toggle fa-chevron-up'></i>")
         .on("click", function() {
           if (statsOpen === 1) {
             statsOpen = 0;
             barSVG.style("display", "none");
-            d3.select(".stats-toggle").text("U");
+            d3.select(".stats-toggle").attr(
+              "class",
+              "fas stats-toggle fa-chevron-down"
+            );
           } else {
             statsOpen = 1;
             barSVG.style("display", "block");
-            d3.select(".stats-toggle").text("C");
+            d3.select(".stats-toggle").attr(
+              "class",
+              "fas stats-toggle fa-chevron-up"
+            );
           }
         });
 
@@ -549,13 +564,15 @@ function migrationMap(option) {
         .style("display", "none");
 
       nodeInfoContainer
-        .append("div")
-        .attr("class", "node-info-toggle")
-        .text("C")
+        .append("i")
+        .attr("class", "fas node-info-toggle fa-chevron-up")
         .on("click", function() {
           if (nodeInfoOpen === 1) {
             nodeInfoOpen = 0;
-            d3.select(this).text("U");
+            d3.select(this).attr(
+              "class",
+              "fas node-info-toggle fa-chevron-down"
+            );
             d3.select(".node-info-1").style("display", "none");
             d3.select(".node-info-2").style("display", "none");
             d3.select(".node-info-3").style("display", "none");
@@ -565,7 +582,7 @@ function migrationMap(option) {
             d3.select(".node-info-link").style("display", "none");
           } else {
             nodeInfoOpen = 1;
-            d3.select(this).text("C");
+            d3.select(this).attr("class", "fas node-info-toggle fa-chevron-up");
             d3.select(".node-info-1").style("display", "block");
             d3.select(".node-info-2").style("display", "block");
             d3.select(".node-info-3").style("display", "block");
@@ -587,7 +604,7 @@ function migrationMap(option) {
         .attr("class", "node-info-link")
         .attr("id", "node-change");
 
-      updateStats();
+      updateStats("");
       /*
       d3.select(".export-option-btn").on("click", function() {
         if (elementActive === "") {
@@ -845,6 +862,7 @@ function migrationMap(option) {
       tooltip.append("div").attr("class", "tooltip-percentage");
 
       function updateStats(drillCounty) {
+        drillCounty = drillCounty;
         barSVG.selectAll("*").remove();
         if (mode === "TO") {
           statsData = toNest;
@@ -859,8 +877,17 @@ function migrationMap(option) {
           statsData.forEach(function(w) {
             if (w.key === drillCounty) {
               statsData = w.values;
+              d3.select(".stats-label-drill")
+                .style("display", "block")
+                .html("States > " + w.key);
+              d3.select(".stats-toggle").style("top", "-30px");
             }
           });
+        } else {
+          d3.select(".stats-label-drill")
+            .style("display", "none")
+            .html("");
+          d3.select(".stats-toggle").style("top", "-10px");
         }
 
         statsHeight = 20 + (5 + 20) * statsData.length;
@@ -895,7 +922,11 @@ function migrationMap(option) {
           })
           .attr("height", 20)
           .on("click", function(d) {
-            updateStats(d.key);
+            if (drillCounty === "") {
+              updateStats(d.key);
+            } else {
+              updateStats("");
+            }
           });
 
         barSVG
