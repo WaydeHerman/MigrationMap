@@ -541,6 +541,7 @@ function migrationMap(option) {
               "class",
               "fas stats-toggle fa-chevron-down"
             );
+            d3.select(".stats-label-drill").style("display", "none");
           } else {
             statsOpen = 1;
             barSVG.style("display", "block");
@@ -548,15 +549,14 @@ function migrationMap(option) {
               "class",
               "fas stats-toggle fa-chevron-up"
             );
+            d3.select(".stats-label-drill").style("display", "block");
           }
         });
 
       var barContainer = statsContainer
         .append("div")
         .attr("class", "stats-bar-container")
-        .on("scroll.scroller", function() {
-          console.log("test");
-        });
+        .style("height", window.innerHeight - 320 + "px");
 
       barSVG = barContainer.append("svg").attr("width", 370);
 
@@ -882,7 +882,7 @@ function migrationMap(option) {
               d3.select(".stats-label-drill")
                 .style("display", "block")
                 .html("States > " + w.key);
-              d3.select(".stats-toggle").style("top", "-30px");
+              d3.select(".stats-toggle").style("top", "-10px");
             }
           });
         } else {
@@ -1133,6 +1133,10 @@ function migrationMap(option) {
           d3.select(".node-info-container")
             .style("display", "none")
             .style("height", "0px");
+          d3.select(".stats-bar-container").style(
+            "height",
+            window.innerHeight - 320 + "px"
+          );
         } else {
           elementActive = "";
           elementMouseOver(d);
@@ -1141,6 +1145,7 @@ function migrationMap(option) {
           d3.select(".node-info-container")
             .style("display", "block")
             .style("height", window.innerHeight - 600 + "px");
+          d3.select(".stats-bar-container").style("height", "200px");
           //
           active_node = d;
           node_info(active_node);
@@ -1155,7 +1160,7 @@ function migrationMap(option) {
         }
 
         var nextBaseUrl =
-          "https://api.census.gov/data/2017/acs/flows?get=MOVEDIN,GEOID1,GEOID2,MOVEDOUT,FULL1_NAME,FULL2_NAME,MOVEDNET&for=county:" +
+          "https://api.census.gov/data/2017/acs/flows?get=MOVEDIN,GEOID1,GEOID2,MOVEDOUT,FULL1_NAME,FULL2_NAME,MOVEDNET,STATE2_NAME,COUNTY2_NAME&for=county:" +
           nextCountyVar +
           "&in=state:" +
           nextStateVar +
@@ -1252,7 +1257,7 @@ function migrationMap(option) {
                 .style("height", "0px");
               d3.select(".legend-area-title").text(sourceFullName);
               updateLegend();
-              updateStats();
+              updateStats("");
               d3.select(".dropbtn").html(
                 modeOptionText + " <i class='arrow down'></i>"
               );
