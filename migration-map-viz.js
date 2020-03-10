@@ -1026,22 +1026,6 @@ function migrationMap(option) {
             .text(function(d) {
               return formatNumber(d.value);
             });
-
-          barSVG
-            .selectAll(".bar-label-perc")
-            .data(statsData)
-            .enter()
-            .append("text")
-            .attr("class", "bar-label-perc")
-            .attr("x", function(d) {
-              return 320;
-            })
-            .attr("y", function(d, i) {
-              return i * 25 + 15;
-            })
-            .text(function(d) {
-              return Math.round((d.value / sumBar) * 10000) / 100 + "%";
-            });
           //
         } else {
           maxBar = d3.max(statsData, function(d) {
