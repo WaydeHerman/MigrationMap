@@ -91,6 +91,24 @@
   cursor: pointer;
 }
 
+.bar-label-value-alt {
+  fill: white;
+  font-weight: bold;
+  opacity: 0;
+}
+
+.bar-label-value-neg {
+  font-weight: bold;
+  fill: white;
+}
+
+.bar-label-value-neg-alt {
+  font-weight: bold;
+  fill: white;
+  opacity: 0;
+  text-anchor: end;
+}
+
 .bar-label-value {
   fill: white;
   text-anchor: end;

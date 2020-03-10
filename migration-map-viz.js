@@ -898,97 +898,271 @@ function migrationMap(option) {
         statsHeight = 20 + (5 + 20) * statsData.length;
         barSVG.attr("height", statsHeight);
 
-        maxBar = d3.max(statsData, function(d) {
-          return Math.abs(d.value);
-        });
-
-        sumBar = d3.sum(statsData, function(d) {
-          return Math.abs(d.value);
-        });
-
-        barScale = d3
-          .scaleLinear()
-          .domain([0, maxBar])
-          .range([0, 170]);
-
-        barSVG
-          .selectAll(".bars")
-          .data(statsData)
-          .enter()
-          .append("rect")
-          .attr("fill", bubbleColor)
-          .style("cursor", "pointer")
-          .attr("x", 140)
-          .attr("y", function(d, i) {
-            return i * 25;
-          })
-          .attr("width", function(d) {
-            return barScale(Math.abs(d.value));
-          })
-          .attr("height", 20)
-          .on("click", function(d) {
-            if (drillCounty === "") {
-              updateStats(d.key);
-            } else {
-              updateStats("");
-            }
+        if (mode === "NET") {
+          maxBar = d3.max(statsData, function(d) {
+            return d.value;
+          });
+          minBar = d3.min(statsData, function(d) {
+            return d.value;
           });
 
-        barSVG
-          .selectAll(".bar-label")
-          .data(statsData)
-          .enter()
-          .append("text")
-          .attr("class", "bar-label")
-          .attr("x", 0)
-          .attr("y", function(d, i) {
-            return i * 25 + 15;
-          })
-          .text(function(d) {
-            return d.key;
-          })
-          .style("cursor", "pointer")
-          .on("click", function(d) {
-            if (drillCounty === "") {
-              updateStats(d.key);
-            } else {
-              updateStats("");
-            }
+          maxVal = d3.max([maxBar, Math.abs(minBar)]);
+
+          sumBar = d3.sum(statsData, function(d) {
+            return d.value;
           });
 
-        barSVG
-          .selectAll(".bar-label-value")
-          .data(statsData)
-          .enter()
-          .append("text")
-          .attr("class", "bar-label-value")
-          .attr("x", function(d) {
-            return 130 + barScale(Math.abs(d.value));
-          })
-          .attr("y", function(d, i) {
-            return i * 25 + 15;
-          })
-          .text(function(d) {
-            if (barScale(d.value) > 60) {
+          d3.select(".stats-label").text(
+            "Stats (Total: " + formatNumber(sumBar) + ")"
+          );
+
+          barScale = d3
+            .scaleLinear()
+            .domain([0, maxVal])
+            .range([0, 85]);
+
+          barSVG
+            .selectAll(".bars")
+            .data(statsData)
+            .enter()
+            .append("rect")
+            .attr("fill", bubbleColor)
+            .style("cursor", "pointer")
+            .attr("x", function(d) {
+              if (d.value < 0) {
+                return 225 - barScale(Math.abs(d.value));
+              } else {
+                return 225;
+              }
+            })
+            .attr("y", function(d, i) {
+              return i * 25;
+            })
+            .attr("width", function(d) {
+              return barScale(Math.abs(d.value));
+            })
+            .attr("height", 20)
+            .on("click", function(d) {
+              if (drillCounty === "") {
+                updateStats(d.key);
+              } else {
+                updateStats("");
+              }
+            })
+            .on("mouseover", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 1);
+            })
+            .on("mouseout", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 0);
+            });
+
+          barSVG
+            .selectAll(".bar-label")
+            .data(statsData)
+            .enter()
+            .append("text")
+            .attr("class", "bar-label")
+            .attr("x", 0)
+            .attr("y", function(d, i) {
+              return i * 25 + 15;
+            })
+            .text(function(d) {
+              return d.key;
+            })
+            .style("cursor", "pointer")
+            .on("click", function(d) {
+              if (drillCounty === "") {
+                updateStats(d.key);
+              } else {
+                updateStats("");
+              }
+            });
+
+          barSVG
+            .selectAll(".bar-label-value")
+            .data(statsData)
+            .enter()
+            .append("text")
+            .attr("id", function(d) {
+              return d.key.toLowerCase().replace(/ /g, "-") + "-value";
+            })
+            .attr("class", function(d) {
+              if (d.value < 0) {
+                if (barScale(Math.abs(d.value)) > 60) {
+                  return "bar-label-value-neg";
+                } else {
+                  return "bar-label-value-neg-alt";
+                }
+              } else {
+                if (barScale(Math.abs(d.value)) > 60) {
+                  return "bar-label-value";
+                } else {
+                  return "bar-label-value-alt";
+                }
+              }
+            })
+            .attr("x", function(d) {
+              if (d.value < 0) {
+                if (barScale(Math.abs(d.value)) > 60) {
+                  return 235 - barScale(Math.abs(d.value));
+                } else {
+                  return 215 - barScale(Math.abs(d.value));
+                }
+              } else {
+                if (barScale(Math.abs(d.value)) > 60) {
+                  return 215 + barScale(Math.abs(d.value));
+                } else {
+                  return 235 + barScale(Math.abs(d.value));
+                }
+              }
+            })
+            .attr("y", function(d, i) {
+              return i * 25 + 15;
+            })
+            .text(function(d) {
+              return formatNumber(d.value);
+            });
+
+          barSVG
+            .selectAll(".bar-label-perc")
+            .data(statsData)
+            .enter()
+            .append("text")
+            .attr("class", "bar-label-perc")
+            .attr("x", function(d) {
+              return 320;
+            })
+            .attr("y", function(d, i) {
+              return i * 25 + 15;
+            })
+            .text(function(d) {
+              return Math.round((d.value / sumBar) * 10000) / 100 + "%";
+            });
+          //
+        } else {
+          maxBar = d3.max(statsData, function(d) {
+            return Math.abs(d.value);
+          });
+
+          sumBar = d3.sum(statsData, function(d) {
+            return Math.abs(d.value);
+          });
+
+          d3.select(".stats-label").text(
+            "Stats (Total: " + formatNumber(sumBar) + ")"
+          );
+
+          barScale = d3
+            .scaleLinear()
+            .domain([0, maxBar])
+            .range([0, 170]);
+
+          barSVG
+            .selectAll(".bars")
+            .data(statsData)
+            .enter()
+            .append("rect")
+            .attr("fill", bubbleColor)
+            .style("cursor", "pointer")
+            .attr("x", 140)
+            .attr("y", function(d, i) {
+              return i * 25;
+            })
+            .attr("width", function(d) {
+              return barScale(Math.abs(d.value));
+            })
+            .attr("height", 20)
+            .on("click", function(d) {
+              if (drillCounty === "") {
+                updateStats(d.key);
+              } else {
+                updateStats("");
+              }
+            })
+            .on("mouseover", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 1);
+            })
+            .on("mouseout", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 0);
+            });
+
+          barSVG
+            .selectAll(".bar-label")
+            .data(statsData)
+            .enter()
+            .append("text")
+            .attr("class", "bar-label")
+            .attr("x", 0)
+            .attr("y", function(d, i) {
+              return i * 25 + 15;
+            })
+            .text(function(d) {
+              return d.key;
+            })
+            .style("cursor", "pointer")
+            .on("click", function(d) {
+              if (drillCounty === "") {
+                updateStats(d.key);
+              } else {
+                updateStats("");
+              }
+            });
+
+          barSVG
+            .selectAll(".bar-label-value")
+            .data(statsData)
+            .enter()
+            .append("text")
+            .attr("id", function(d) {
+              return d.key.toLowerCase().replace(/ /g, "-") + "-value";
+            })
+            .attr("class", function(d) {
+              if (barScale(d.value) > 60) {
+                return "bar-label-value";
+              } else {
+                return "bar-label-value-alt";
+              }
+            })
+            .attr("x", function(d) {
+              if (barScale(d.value) > 60) {
+                return 130 + barScale(Math.abs(d.value));
+              } else {
+                return 150 + barScale(Math.abs(d.value));
+              }
+            })
+            .attr("y", function(d, i) {
+              return i * 25 + 15;
+            })
+            .text(function(d) {
               return formatNumber(Math.abs(d.value));
-            }
-          });
+            });
 
-        barSVG
-          .selectAll(".bar-label-perc")
-          .data(statsData)
-          .enter()
-          .append("text")
-          .attr("class", "bar-label-perc")
-          .attr("x", function(d) {
-            return 320;
-          })
-          .attr("y", function(d, i) {
-            return i * 25 + 15;
-          })
-          .text(function(d) {
-            return Math.round((Math.abs(d.value) / sumBar) * 10000) / 100 + "%";
-          });
+          barSVG
+            .selectAll(".bar-label-perc")
+            .data(statsData)
+            .enter()
+            .append("text")
+            .attr("class", "bar-label-perc")
+            .attr("x", function(d) {
+              return 320;
+            })
+            .attr("y", function(d, i) {
+              return i * 25 + 15;
+            })
+            .text(function(d) {
+              return (
+                Math.round((Math.abs(d.value) / sumBar) * 10000) / 100 + "%"
+              );
+            });
+        }
       }
 
       function exportPNG() {
