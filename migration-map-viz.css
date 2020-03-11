@@ -129,6 +129,7 @@
 
 .legend-header {
   border-bottom: 1px solid white;
+  height: 90px;
 }
 
 .legend-sub-header {
@@ -168,9 +169,24 @@
 
 .flow-picker-container {
   position: relative;
-  top: 10px;
-  padding: 10px;
-  margin: 10px;
+  top: 30px;
+  left: -5px;
+}
+
+.map-type-picker-container {
+  position: relative;
+  top: 30px;
+  left: -5px;
+}
+
+.dropdown-map-type {
+  margin: auto;
+  position: relative;
+  float: right;
+  top: -35px;
+  left: 160px;
+  display: inline-block;
+  max-width: 170px;
 }
 
 .flow-picker-text {
@@ -256,7 +272,7 @@
 
 .dropbtn-icon {
   border: none;
-  margin-left: 40px;
+  float: right;
 }
 
 /* Links inside the dropdown */
@@ -275,11 +291,13 @@
 }
 
 /* Show the dropdown menu on hover */
+.dropdown-map-type:hover .dropdown-content,
 .dropdown-flow:hover .dropdown-content {
   display: block;
 }
 
 /* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown-map-type:hover .dropbtn,
 .dropdown-flow:hover .dropbtn {
   background-color: #132a54;
 }
@@ -302,7 +320,7 @@ i {
   position: relative;
   float: right;
   top: 10px;
-  left: 100px;
+  left: -30px;
   display: inline-block;
 }
 
@@ -316,14 +334,16 @@ i {
 
 .export-option-title {
   color: white;
+  font-size: 14px;
   font-weight: bold;
   padding-left: 5px;
 }
 
 .export-option {
-  color: #2f61a2;
+  color: #119eb9;
   font-weight: bold;
   cursor: pointer;
+  font-size: 14px;
   padding: 5px;
   padding-top: 3px;
   padding-bottom: 0px;

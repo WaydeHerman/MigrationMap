@@ -33,6 +33,7 @@ function migrationMap(option) {
   var nodeInfoOpen = 1;
   var statsOpen = 1;
   var drillCounty = "";
+  var mapType = "Bubble + Flow";
 
   const container = d3.select(el).classed("migration-map-viz", true);
   container.append("p").attr("id", "map");
@@ -88,8 +89,6 @@ function migrationMap(option) {
 
   d3.csv(baseUrl).then(function(data) {
     d3.json("us-counties.json").then(function(json) {
-      console.log(data);
-      console.log(json);
       var transform = d3.geoTransform({ point: projectPoint }),
         path = d3.geoPath().projection(transform);
 
@@ -171,14 +170,6 @@ function migrationMap(option) {
           maxValue = maxValNET;
         }
 
-        console.log("maxValTO", maxValTO);
-        console.log("maxValFROM", maxValFROM);
-        console.log("maxValNET", maxValNET);
-
-        console.log("sourceData", sourceData);
-        console.log("sourceName", sourceName);
-        console.log("sourceFullName", sourceFullName);
-
         // Bar Chart data:
         toNest = d3
           .nest()
@@ -217,8 +208,6 @@ function migrationMap(option) {
           var valB = b.value;
           return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
         });
-
-        console.log("data", data);
 
         fromNest = d3
           .nest()
@@ -295,8 +284,6 @@ function migrationMap(option) {
           var valB = b.value;
           return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
         });
-
-        console.log("netNest", netNest);
 
         z = d3
           .scaleLinear()
@@ -404,10 +391,47 @@ function migrationMap(option) {
           reset();
           updateLegend();
           updateStats("");
-          d3.select(".dropbtn").html(d.name + " <i class='arrow down'></i>");
+          d3.select(".dropbtn").html(
+            d.name + " <i class='fas dropbtn-icon fa-chevron-down'></i>"
+          );
           if (elementActive !== "") {
             node_info(active_node);
           }
+        });
+
+      var mapTypePickerContainer = legendHeader
+        .append("div")
+        .attr("class", "map-type-picker-container");
+
+      mapTypePickerContainer.append("div").attr("class", "dropdown-map-type");
+
+      d3.select(".dropdown-map-type")
+        .append("div")
+        .attr("class", "dropdown-content")
+        .attr("id", "map-type-selector");
+
+      d3.select(".dropdown-map-type")
+        .append("button")
+        .attr("class", "dropbtn")
+        .attr("id", "dropbtn-map-type")
+        .html(mapType + " <i class='fas dropbtn-icon fa-chevron-down'></i>");
+
+      var mapType_list = ["Bubble + Flow", "Bubble", "Heatmap"];
+
+      d3.select("#map-type-selector")
+        .selectAll("a")
+        .data(mapType_list)
+        .enter()
+        .append("text")
+        .html(function(d) {
+          return "<a href='#'>" + d + "</a>";
+        })
+        .on("click", function(d) {
+          mapType = d;
+          d3.select("#dropbtn-map-type").html(
+            d + " <i class='fas dropbtn-icon fa-chevron-down'></i>"
+          );
+          updateMapType();
         });
 
       var legendSubHeader = legendContainer
@@ -420,7 +444,6 @@ function migrationMap(option) {
 
       var legendSVG = legendSubHeader
         .append("svg")
-        .style("top", "-85px")
         .style("position", "relative")
         .attr("width", 140)
         .attr("height", 95);
@@ -866,6 +889,17 @@ function migrationMap(option) {
       tooltip.append("div").attr("class", "tooltip-total");
       tooltip.append("div").attr("class", "tooltip-percentage");
 
+      function updateMapType() {
+        console.log("test");
+        console.log("mapType", mapType);
+        if (mapType === "Bubble + Flow") {
+          d3.selectAll(".feature-line").style("display", "");
+        }
+        if (mapType === "Bubble") {
+          d3.selectAll(".feature-line").style("display", "none");
+        }
+      }
+
       function updateStats(drillCounty) {
         drillCounty = drillCounty;
         barSVG.selectAll("*").remove();
@@ -980,6 +1014,16 @@ function migrationMap(option) {
               } else {
                 updateStats("");
               }
+            })
+            .on("mouseover", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 1);
+            })
+            .on("mouseout", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 0);
             });
 
           barSVG
@@ -1098,6 +1142,16 @@ function migrationMap(option) {
               } else {
                 updateStats("");
               }
+            })
+            .on("mouseover", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 1);
+            })
+            .on("mouseout", function(d) {
+              d3.select(
+                "#" + d.key.toLowerCase().replace(/ /g, "-") + "-value"
+              ).style("opacity", 0);
             });
 
           barSVG
