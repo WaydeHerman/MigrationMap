@@ -153,8 +153,8 @@ function migrationMap(option) {
               a.push(v.properties.FROM);
               b.push(v.properties.TO);
               c.push(v.properties.NET);
-              toHeat.push(a);
-              fromHeat.push(b);
+              fromHeat.push(a);
+              toHeat.push(b);
               netHeat.push(c);
             }
           });
@@ -187,7 +187,7 @@ function migrationMap(option) {
         tmp_netHeat = [];
         toHeat.forEach(function(v) {
           v[2] = v[2] / maxValTO;
-          var test = Math.round(v[2] * 10);
+          var test = Math.round((v[2] * 10) ** 2);
           if (v[2] > 0) {
             test += 1;
           }
@@ -197,7 +197,7 @@ function migrationMap(option) {
         });
         fromHeat.forEach(function(v) {
           v[2] = v[2] / maxValFROM;
-          var test = Math.round(v[2] * 10);
+          var test = Math.round((v[2] * 10) ** 2);
           if (v[2] > 0) {
             test += 1;
           }
@@ -805,8 +805,8 @@ function migrationMap(option) {
         if (mapType === "Heatmap") {
           var heat = L.heatLayer(heatData, {
             maxZoom: 11,
-            minOpacity: 0.35,
-            radius: 25
+            minOpacity: 0.2,
+            radius: 20
           }).addTo(map);
         }
 
