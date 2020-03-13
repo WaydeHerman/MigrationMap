@@ -778,8 +778,8 @@ function migrationMap(option) {
 
         if (mapType === "Heatmap") {
           var heat = L.heatLayer(heatData, {
-            maxZoom: 5,
-            minOpacity: 0.4,
+            maxZoom: 11,
+            minOpacity: 0.2,
             radius: 25
           }).addTo(map);
         }
