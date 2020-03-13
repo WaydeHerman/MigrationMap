@@ -58,6 +58,7 @@ function migrationMap(option) {
 
   const accessToken =
     "pk.eyJ1Ijoic3RlbmluamEiLCJhIjoiSjg5eTMtcyJ9.g_O2emQF6X9RV69ibEsaIw";
+
   var map = new L.Map("map", {
     center: [47.8, -110.9],
     zoom: 4,
@@ -93,6 +94,7 @@ function migrationMap(option) {
         path = d3.geoPath().projection(transform);
 
       var z,
+        z_alt,
         featureLine,
         featureCircle,
         sourcePoint,
@@ -109,7 +111,12 @@ function migrationMap(option) {
         toNest,
         fromNest,
         netNest,
-        barSVG;
+        toHeat,
+        fromHeat,
+        netHeat,
+        heatData,
+        barSVG,
+        heat;
 
       function plot(data, type) {
         currentData = data;
@@ -122,6 +129,10 @@ function migrationMap(option) {
         totalsTO = [];
         totalsFROM = [];
         totalsNET = [];
+        toHeat = [];
+        fromHeat = [];
+        netHeat = [];
+        heatData = [];
         json_copy.features.forEach(function(v) {
           v.properties.TO = 0;
           v.properties.FROM = 0;
@@ -134,6 +145,17 @@ function migrationMap(option) {
               v.properties.NET += +w["MOVEDNET"];
               v.properties.TO += +w["MOVEDOUT"] + +w["MOVEDNET"];
               v.properties.fullName = w["FULL2_NAME"];
+              var x = v.geometry.coordinates[0][0][0];
+              var y = v.geometry.coordinates[0][0][1];
+              var a = doStuff(x, y),
+                b = doStuff(x, y),
+                c = doStuff(x, y);
+              a.push(v.properties.FROM);
+              b.push(v.properties.TO);
+              c.push(v.properties.NET);
+              toHeat.push(a);
+              fromHeat.push(b);
+              netHeat.push(c);
             }
           });
           if (v.id === formatIdToFIPS(fips)) {
@@ -159,6 +181,20 @@ function migrationMap(option) {
         maxValTO = d3.max(totalsTO);
         maxValFROM = d3.max(totalsFROM);
         maxValNET = d3.max(totalsNET);
+
+        toHeat.forEach(function(v) {
+          v[2] = v[2] / maxValTO;
+        });
+        fromHeat.forEach(function(v) {
+          v[2] = v[2] / maxValFROM;
+        });
+        netHeat.forEach(function(v) {
+          v[2] = v[2] / maxValNET;
+        });
+
+        console.log("toHeat", toHeat);
+        console.log("fromHeat", fromHeat);
+        console.log("netHeat", netHeat);
 
         if (type === "TO") {
           maxValue = maxValTO;
@@ -290,6 +326,11 @@ function migrationMap(option) {
           .domain([0, maxValue])
           .range([1.5, 30]);
 
+        z_alt = d3
+          .scaleLinear()
+          .domain([0, maxValue])
+          .range([8, 40]);
+
         curveScale = d3
           .scaleLinear()
           .domain([0, d3.max(distance_list)])
@@ -323,8 +364,8 @@ function migrationMap(option) {
       }
 
       plot(data, "FROM");
-
       map.on("viewreset", reset);
+
       reset();
 
       var legendContainer = d3
@@ -388,6 +429,11 @@ function migrationMap(option) {
         })
         .on("click", function(d) {
           mode = d.mode;
+          map.eachLayer(function(d) {
+            if (d._heat) {
+              map.removeLayer(d);
+            }
+          });
           reset();
           updateLegend();
           updateStats("");
@@ -432,6 +478,7 @@ function migrationMap(option) {
             d + " <i class='fas dropbtn-icon fa-chevron-down'></i>"
           );
           updateMapType();
+          reset();
         });
 
       var legendSubHeader = legendContainer
@@ -683,6 +730,22 @@ function migrationMap(option) {
           topLeft = bounds[0],
           bottomRight = bounds[1];
 
+        map.eachLayer(function(d) {
+          console.log(d);
+          if (d._heat) {
+            console.log("HERE");
+            map.removeLayer(d);
+          }
+        });
+
+        if (mapType !== "Heatmap") {
+          map.eachLayer(function(d) {
+            if (d._heat) {
+              map.removeLayer(d);
+            }
+          });
+        }
+
         svg
           .attr("width", bottomRight[0] - topLeft[0] + 100)
           .attr("height", bottomRight[1] - topLeft[1] + 100)
@@ -698,22 +761,38 @@ function migrationMap(option) {
           maxVal = maxValTO;
           totals = totalsTO;
           flowDirection = "in-flow";
+          heatData = toHeat;
         }
         if (mode === "FROM") {
           maxVal = maxValFROM;
           totals = totalsFROM;
           flowDirection = "out-flow";
+          heatData = fromHeat;
         }
         if (mode === "NET") {
           maxVal = maxValNET;
           totals = totalsNET;
           flowDirection = "net-flow";
+          heatData = netHeat;
+        }
+
+        if (mapType === "Heatmap") {
+          var heat = L.heatLayer(heatData, {
+            maxZoom: 5,
+            minOpacity: 0.4,
+            radius: 25
+          }).addTo(map);
         }
 
         var z = d3
           .scaleLinear()
           .domain([0, maxVal])
           .rangeRound([1.5, 30]);
+
+        var z_alt = d3
+          .scaleLinear()
+          .domain([0, maxValue])
+          .range([8, 40]);
 
         //feature.attr("d", path).attr("class", "county");
 
@@ -728,7 +807,13 @@ function migrationMap(option) {
           })
           .attr("r", function(d) {
             if (d.properties[mode] > 0) {
-              return Math.abs(z(d.properties[mode]));
+              if (mapType === "Bubble + Flow") {
+                return Math.abs(z(d.properties[mode]));
+              } else {
+                if (mapType === "Bubble") {
+                  return Math.abs(z_alt(d.properties[mode]));
+                }
+              }
             } else {
               return 0;
             }
@@ -874,6 +959,27 @@ function migrationMap(option) {
           .attr("r", 10);
       }
 
+      function doStuff(x, y) {
+        //console.log(e.latlng);
+        // coordinates in tile space
+        //var x = e.layerPoint.x;
+        //var y = e.layerPoint.y;
+        //console.log([x, y]);
+
+        // calculate point in xy space
+        var pointXY = L.point(x, y);
+        //console.log("Point in x,y space: " + pointXY);
+
+        // convert to lat/lng space
+        var pointlatlng = map.layerPointToLatLng(pointXY);
+        // why doesn't this match e.latlng?
+        //console.log("Point in lat,lng space: " + pointlatlng);
+
+        var test = new L.LatLng(y, x);
+        //console.log(" test: " + test);
+        return [test.lat, test.lng];
+      }
+
       // Use Leaflet to implement a D3 geometric transformation.
       function projectPoint(x, y) {
         var point = map.latLngToLayerPoint(new L.LatLng(y, x));
@@ -890,13 +996,43 @@ function migrationMap(option) {
       tooltip.append("div").attr("class", "tooltip-percentage");
 
       function updateMapType() {
-        console.log("test");
         console.log("mapType", mapType);
         if (mapType === "Bubble + Flow") {
           d3.selectAll(".feature-line").style("display", "");
+          d3.selectAll(".feature-circle")
+            .attr("r", function(d) {
+              if (d.properties[mode] > 0) {
+                return Math.abs(z(d.properties[mode]));
+              } else {
+                return 0;
+              }
+            })
+            .attr("stroke-width", 0)
+            .attr("fill-opacity", 1);
         }
         if (mapType === "Bubble") {
+          //z2
           d3.selectAll(".feature-line").style("display", "none");
+          d3.selectAll(".feature-circle")
+            .attr("r", function(d) {
+              if (d.properties[mode] > 0) {
+                return Math.abs(z_alt(d.properties[mode]));
+              } else {
+                return 0;
+              }
+            })
+            .attr("stroke", bubbleColor)
+            .attr("stroke-width", 2)
+            .attr("fill-opacity", 0.3);
+        }
+        if (mapType === "Heatmap") {
+          d3.selectAll(".feature-line").style("display", "none");
+          d3.selectAll(".feature-circle")
+            .attr("r", 0)
+            .attr("stroke", bubbleColor)
+            .attr("stroke-width", 0);
+          //
+          reset();
         }
       }
 
