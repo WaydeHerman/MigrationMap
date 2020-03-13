@@ -182,15 +182,43 @@ function migrationMap(option) {
         maxValFROM = d3.max(totalsFROM);
         maxValNET = d3.max(totalsNET);
 
+        tmp_toHeat = [];
+        tmp_fromHeat = [];
+        tmp_netHeat = [];
         toHeat.forEach(function(v) {
           v[2] = v[2] / maxValTO;
+          var test = Math.round(v[2] * 10);
+          if (v[2] > 0) {
+            test += 1;
+          }
+          for (let i = 0; i <= test; i++) {
+            tmp_toHeat.push(v);
+          }
         });
         fromHeat.forEach(function(v) {
           v[2] = v[2] / maxValFROM;
+          var test = Math.round(v[2] * 10);
+          if (v[2] > 0) {
+            test += 1;
+          }
+          for (let i = 0; i <= test; i++) {
+            tmp_fromHeat.push(v);
+          }
         });
         netHeat.forEach(function(v) {
           v[2] = v[2] / maxValNET;
+          var test = Math.round(v[2] * 10);
+          if (v[2] > 0) {
+            test += 1;
+          }
+          for (let i = 0; i <= test; i++) {
+            tmp_netHeat.push(v);
+          }
         });
+
+        toHeat = tmp_toHeat;
+        fromHeat = tmp_fromHeat;
+        netHeat = tmp_netHeat;
 
         console.log("toHeat", toHeat);
         console.log("fromHeat", fromHeat);
@@ -731,9 +759,7 @@ function migrationMap(option) {
           bottomRight = bounds[1];
 
         map.eachLayer(function(d) {
-          console.log(d);
           if (d._heat) {
-            console.log("HERE");
             map.removeLayer(d);
           }
         });
@@ -779,7 +805,7 @@ function migrationMap(option) {
         if (mapType === "Heatmap") {
           var heat = L.heatLayer(heatData, {
             maxZoom: 11,
-            minOpacity: 0.2,
+            minOpacity: 0.35,
             radius: 25
           }).addTo(map);
         }
