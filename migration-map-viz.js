@@ -152,7 +152,7 @@ function migrationMap(option) {
                 c = doStuff(x, y);
               a.push(v.properties.FROM);
               b.push(v.properties.TO);
-              c.push(v.properties.NET);
+              c.push(v.properties.FROM + v.properties.TO);
               fromHeat.push(a);
               toHeat.push(b);
               netHeat.push(c);
@@ -206,8 +206,8 @@ function migrationMap(option) {
           }
         });
         netHeat.forEach(function(v) {
-          v[2] = v[2] / maxValNET;
-          var test = Math.round(v[2] * 10);
+          v[2] = v[2] / (maxValFROM + maxValTO);
+          var test = Math.round((v[2] * 10) ** 2);
           if (v[2] > 0) {
             test += 1;
           }
@@ -530,7 +530,43 @@ function migrationMap(option) {
         .attr("y", 225)
         .text("Migration Trends");*/
 
+      var legendColorScale = d3
+        .scaleLinear()
+        .domain([65, 0])
+        .interpolate(d3.interpolateHslLong)
+        .range(["blue", "red"]);
+
       var legend_examples = [0.1 * maxValue, maxValue / 2, maxValue];
+
+      legendSVG
+        .selectAll(".bars")
+        .data(d3.range(65), function(d) {
+          return d;
+        })
+        .enter()
+        .append("rect")
+        .attr("class", "bars")
+        .attr("y", function(d, i) {
+          return i + 25;
+        })
+        .attr("x", 35)
+        .attr("width", 30)
+        .attr("height", 1)
+        .style("fill", function(d, i) {
+          return legendColorScale(d);
+        })
+        .style("opacity", 0);
+
+      legendSVG
+        .append("rect")
+        .attr("class", "legend-heatbar")
+        .attr("x", 35)
+        .attr("y", 25)
+        .attr("width", 30)
+        .attr("height", 0)
+        .attr("fill", "none")
+        .attr("stroke", "white")
+        .attr("stroke-width", 0);
 
       legendSVG
         .selectAll(".legend-axis")
@@ -553,6 +589,7 @@ function migrationMap(option) {
         .data(legend_examples)
         .enter()
         .append("circle")
+        .attr("class", "legend-circle")
         .attr("fill", "none")
         .attr("stroke", bubbleColor)
         .attr("stroke-width", "2px")
@@ -968,7 +1005,7 @@ function migrationMap(option) {
         sourcePoint
           .attr("class", "source")
           .style("stroke", function() {
-            if (mode !== "FROM") {
+            if (mode !== "FROM" || mapType === "Heatmap") {
               return lineOutColor;
             } else {
               return lineInColor;
@@ -982,7 +1019,13 @@ function migrationMap(option) {
           .attr("cy", function(d) {
             return path.centroid(d)[1];
           })
-          .attr("r", 10);
+          .attr("r", function() {
+            if (mapType !== "Heatmap") {
+              return 10;
+            } else {
+              return 6;
+            }
+          });
       }
 
       function doStuff(x, y) {
@@ -1024,7 +1067,9 @@ function migrationMap(option) {
       function updateMapType() {
         console.log("mapType", mapType);
         if (mapType === "Bubble + Flow") {
+          updateLegend();
           d3.selectAll(".feature-line").style("display", "");
+          d3.select(".source").attr("r", 10);
           d3.selectAll(".feature-circle")
             .attr("r", function(d) {
               if (d.properties[mode] > 0) {
@@ -1038,7 +1083,9 @@ function migrationMap(option) {
         }
         if (mapType === "Bubble") {
           //z2
+          updateLegend();
           d3.selectAll(".feature-line").style("display", "none");
+          d3.select(".source").attr("r", 10);
           d3.selectAll(".feature-circle")
             .attr("r", function(d) {
               if (d.properties[mode] > 0) {
@@ -1057,7 +1104,9 @@ function migrationMap(option) {
             .attr("r", 0)
             .attr("stroke", bubbleColor)
             .attr("stroke-width", 0);
+          d3.select(".source").attr("r", 6);
           //
+          updateLegend();
           reset();
         }
       }
@@ -1438,17 +1487,54 @@ function migrationMap(option) {
       }
 
       function updateLegend() {
-        d3.selectAll(".legend-text").text(function(d, i) {
-          if (i === 0) {
-            return formatNumber(0.1 * maxVal);
-          }
-          if (i === 1) {
-            return formatNumber(maxVal / 2);
-          }
-          if (i === 2) {
-            return formatNumber(maxVal);
-          }
-        });
+        d3.selectAll(".legend-text")
+          .text(function(d, i) {
+            if (mapType !== "Heatmap") {
+              if (i === 0) {
+                return formatNumber(0.1 * maxVal);
+              }
+              if (i === 1) {
+                return formatNumber(maxVal / 2);
+              }
+              if (i === 2) {
+                return formatNumber(maxVal);
+              }
+            } else {
+              if (i === 0) {
+                return formatNumber(0);
+              }
+              if (i === 2) {
+                return formatNumber(maxVal);
+              }
+            }
+          })
+          .attr("y", function(d, i) {
+            if (mapType !== "Heatmap") {
+              if (i === 0) {
+                return 57 + z(maxValue) - 2 * z(0.1 * maxVal);
+              }
+              if (i === 1) {
+                return 57 + z(maxValue) - 2 * z(maxVal / 2);
+              }
+              if (i === 2) {
+                return 57 + z(maxValue) - 2 * z(maxVal);
+              }
+            } else {
+              if (i === 0) {
+                return 90;
+              } else {
+                return 25;
+              }
+            }
+          })
+          .attr("x", function(d, i) {
+            if (mapType !== "Heatmap") {
+              return 110;
+            } else {
+              return 80;
+            }
+          });
+
         d3.selectAll(".legend-circle")
           .attr("cy", function(d, i) {
             if (i === 0) {
@@ -1460,20 +1546,75 @@ function migrationMap(option) {
             if (i === 2) {
               value = maxVal;
             }
-            return 70 + z(maxVal) - z(value);
+            return 55 + z(maxVal) - z(value);
           })
           .attr("r", function(d, i) {
-            if (i === 0) {
-              value = 0.1 * maxVal;
+            if (mapType !== "Heatmap") {
+              if (i === 0) {
+                value = 0.1 * maxVal;
+              }
+              if (i === 1) {
+                value = maxVal / 2;
+              }
+              if (i === 2) {
+                value = maxVal;
+              }
+              return z(value);
+            } else {
+              return 0;
             }
-            if (i === 1) {
-              value = maxVal / 2;
-            }
-            if (i === 2) {
-              value = maxVal;
-            }
-            return z(value);
           });
+        d3.selectAll(".legend-axis")
+          .attr("y1", function(d) {
+            if (mapType !== "Heatmap") {
+              return 55 + z(maxValue) - 2 * z(d);
+            } else {
+              return 0;
+            }
+          })
+          .attr("y2", function(d) {
+            if (mapType !== "Heatmap") {
+              return 55 + z(maxValue) - 2 * z(d);
+            } else {
+              return 0;
+            }
+          })
+          .attr("x1", function() {
+            if (mapType !== "Heatmap") {
+              return 50;
+            } else {
+              return 0;
+            }
+          })
+          .attr("x2", function() {
+            if (mapType !== "Heatmap") {
+              return 105;
+            } else {
+              return 0;
+            }
+          });
+        d3.select(".legend-heatbar")
+          .attr("height", function() {
+            if (mapType !== "Heatmap") {
+              return 0;
+            } else {
+              return 65;
+            }
+          })
+          .attr("stroke-width", function() {
+            if (mapType !== "Heatmap") {
+              return 0;
+            } else {
+              return 2;
+            }
+          });
+        d3.selectAll(".bars").style("opacity", function() {
+          if (mapType !== "Heatmap") {
+            return 0;
+          } else {
+            return 1;
+          }
+        });
       }
 
       function showTooltip(d) {
