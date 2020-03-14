@@ -1504,7 +1504,12 @@ function migrationMap(option) {
                 return formatNumber(0);
               }
               if (i === 2) {
-                return formatNumber(maxVal);
+                console.log(mode);
+                if (mode === "NET") {
+                  return formatNumber(maxValTO + maxValFROM);
+                } else {
+                  return formatNumber(maxVal);
+                }
               }
             }
           })
