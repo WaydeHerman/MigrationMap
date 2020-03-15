@@ -553,8 +553,10 @@ function migrationMap(option) {
           d3.select("#dropbtn-map-type").html(
             d + " <i class='fas dropbtn-icon fa-chevron-down'></i>"
           );
-          updateMapType();
           reset();
+          updateMapType();
+          //updateLegend();
+          updateStats("");
         });
 
       var legendSubHeader = legendContainer
@@ -1539,6 +1541,16 @@ function migrationMap(option) {
       }
 
       function updateLegend() {
+        var z = d3
+          .scaleLinear()
+          .domain([0, maxVal])
+          .rangeRound([1.5, 30]);
+
+        var z_alt = d3
+          .scaleLinear()
+          .domain([0, maxVal])
+          .range([8, 40]);
+
         d3.selectAll(".legend-text")
           .text(function(d, i) {
             if (mapType !== "Heatmap") {
@@ -1567,19 +1579,14 @@ function migrationMap(option) {
           })
           .attr("y", function(d, i) {
             if (mapType !== "Heatmap") {
-              if (mapType === "Bubble + Flow") {
-                scale_f = z;
-              } else {
-                scale_f = z_alt;
-              }
               if (i === 0) {
-                return 57 + scale_f(maxValue) - 2 * scale_f(0.1 * maxVal);
+                return 57 + z(maxVal) - 2 * z(0.1 * maxVal);
               }
               if (i === 1) {
-                return 57 + scale_f(maxValue) - 2 * scale_f(maxVal / 2);
+                return 57 + z(maxVal) - 2 * z(maxVal / 2);
               }
               if (i === 2) {
-                return 57 + scale_f(maxValue) - 2 * scale_f(maxVal);
+                return 57 + z(maxVal) - 2 * z(maxVal);
               }
             } else {
               if (i === 0) {
@@ -1627,16 +1634,34 @@ function migrationMap(option) {
             }
           });
         d3.selectAll(".legend-axis")
-          .attr("y1", function(d) {
+          .attr("y1", function(d, i) {
             if (mapType !== "Heatmap") {
-              return 55 + z(maxValue) - 2 * z(d);
+              if (i === 0) {
+                value = 0.1 * maxVal;
+              }
+              if (i === 1) {
+                value = maxVal / 2;
+              }
+              if (i === 2) {
+                value = maxVal;
+              }
+              return 55 + z(maxVal) - 2 * z(value);
             } else {
               return 0;
             }
           })
-          .attr("y2", function(d) {
+          .attr("y2", function(d, i) {
             if (mapType !== "Heatmap") {
-              return 55 + z(maxValue) - 2 * z(d);
+              if (i === 0) {
+                value = 0.1 * maxVal;
+              }
+              if (i === 1) {
+                value = maxVal / 2;
+              }
+              if (i === 2) {
+                value = maxVal;
+              }
+              return 55 + z(maxVal) - 2 * z(value);
             } else {
               return 0;
             }
