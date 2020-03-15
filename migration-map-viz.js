@@ -349,6 +349,54 @@ function migrationMap(option) {
           return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
         });
 
+        console.log(
+          data.filter(function(d) {
+            return d["GEOID2"] != "null";
+          })
+        );
+
+        totalNest = d3
+          .nest()
+          .key(function(d) {
+            return d["STATE2_NAME"];
+          })
+          .rollup(function(v) {
+            var totalTo = d3.sum(v, function(d) {
+              return +d["MOVEDOUT"] + +d["MOVEDNET"] + +d["MOVEDOUT"];
+            });
+            v.total = totalTo;
+            return totalTo;
+          })
+          .key(function(d) {
+            return d["COUNTY2_NAME"];
+          })
+          .entries(
+            data.filter(function(d) {
+              return d["GEOID2"] != "null";
+            })
+          );
+
+        totalNest.forEach(function(v) {
+          v.values.sort(function(a, b) {
+            var valA = a.value;
+            var valB = b.value;
+            return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+          });
+          v.value = d3.sum(v.values, function(w) {
+            return w.value;
+          });
+        });
+
+        totalNest.sort(function(a, b) {
+          var valA = a.value;
+          var valB = b.value;
+          return valA > valB ? -1 : valA < valB ? 1 : valA <= valB ? 0 : NaN;
+        });
+
+        console.log("netNest", netNest);
+
+        console.log("totalNest", totalNest);
+
         z = d3
           .scaleLinear()
           .domain([0, maxValue])
@@ -1121,7 +1169,11 @@ function migrationMap(option) {
           statsData = fromNest;
         }
         if (mode === "NET") {
-          statsData = netNest;
+          if (mapType !== "Heatmap") {
+            statsData = netNest;
+          } else {
+            statsData = totalNest;
+          }
         }
         if (drillCounty != "") {
           statsData.forEach(function(w) {
@@ -1143,7 +1195,7 @@ function migrationMap(option) {
         statsHeight = 20 + (5 + 20) * statsData.length;
         barSVG.attr("height", statsHeight);
 
-        if (mode === "NET") {
+        if (mode === "NET" && mapType !== "Heatmap") {
           maxBar = d3.max(statsData, function(d) {
             return d.value;
           });
@@ -1515,14 +1567,19 @@ function migrationMap(option) {
           })
           .attr("y", function(d, i) {
             if (mapType !== "Heatmap") {
+              if (mapType === "Bubble + Flow") {
+                scale_f = z;
+              } else {
+                scale_f = z_alt;
+              }
               if (i === 0) {
-                return 57 + z(maxValue) - 2 * z(0.1 * maxVal);
+                return 57 + scale_f(maxValue) - 2 * scale_f(0.1 * maxVal);
               }
               if (i === 1) {
-                return 57 + z(maxValue) - 2 * z(maxVal / 2);
+                return 57 + scale_f(maxValue) - 2 * scale_f(maxVal / 2);
               }
               if (i === 2) {
-                return 57 + z(maxValue) - 2 * z(maxVal);
+                return 57 + scale_f(maxValue) - 2 * scale_f(maxVal);
               }
             } else {
               if (i === 0) {
